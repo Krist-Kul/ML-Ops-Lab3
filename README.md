@@ -149,6 +149,36 @@ version description per version, checked by registering a second version with a 
 and reading the first one back unchanged. Labels are capped at 63 characters, so the full
 `image_digest` is in the version description and truncated in the label.
 
+Registered: `itcs355-6688053` version **1**, aliases `default`, `staging`, `production`,
+trained by Vertex job `4570562909159030784` from commit `6173dd6` on data
+`422cccb9136e8140` — val ROC AUC 0.8405, test 0.8543, identical to the study's `trial-00`.
+`make reload-check VERSION=1` loads it from the registry and scores five held-out rows.
+
+### Lab 2 deliverables
+
+- [x] `submit_training()` / `wait_training()` — `make train-remote`, 91 s, test ROC AUC
+      0.84824, the same number the local container produced
+- [x] 12 trials on spot, checkpointed to object storage, all tracked in `itcs355-lab2`
+- [x] Interruption survived: `make tune INTERRUPT_AT=5` killed trial 5 mid-run; Vertex
+      restarted the container and the study resumed from the checkpoint 7 s later
+- [x] Comparison table and the 200-word justification in `reports/lab2-comparison.md`
+- [x] Eight lineage fields on the registered **version** — `reports/lab2-registry.md`
+- [x] Promotion performed (`staging`, then `production`), with the ownership rule below
+- [x] `reload_check.py` loads by version from the registry and scores rows
+- [x] Cost per trial recorded; 0.51 THB spent of the 150 THB budget, repriced at the
+      verified rates — 0.23 THB for the first managed run (on demand, before spot was
+      wired up), 0.23 THB for the 12-trial study on spot, 0.05 THB for the registration
+      run. The figures logged at the time are 25% lower because they used the handout's
+      unverified 7.6 THB/h and flat 30% spot rule
+- [ ] `make teardown` — implemented in Lab 5. No compute is left running (all Vertex jobs
+      terminal), and the handout keeps the registered model and its artifacts for Lab 3
+
+The permission that failed first, which Drill 2 asks for: the job's run-time identity had
+no access to the bucket, and Vertex reported it as `OSError: [Errno 5] Input/output error`
+from the `/gcs` FUSE mount — not as an IAM error. Fixed with `roles/storage.objectUser`
+on the bucket for `itcs355-trainer@...`, which is the job's `IDENTITY_REF`, not the CLI
+identity that submitted it.
+
 ### Who may promote a model
 
 Not the person who trained it, and not a rule that only says "a senior engineer". In an
