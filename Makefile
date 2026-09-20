@@ -4,11 +4,14 @@
 SHELL := /bin/bash
 IMAGE ?= itcs355-lab1
 TAG   ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo dev)
+# Baked into the image. "-dirty" marks a build from uncommitted changes, which no commit
+# can reproduce.
+GIT_COMMIT ?= $(shell git rev-parse HEAD 2>/dev/null || echo unknown)$(shell git diff --quiet HEAD 2>/dev/null || echo -dirty)
 PLATFORM ?= linux/amd64
 SEED ?= 20260101
 
 .PHONY: help setup cloud-check data test portability-audit train image image-push reproduce verify clean teardown \
-        tune compare reload-check serve serve-image loadtest drift inject-drift pipeline cost swap-check llm-eval llm-gate
+        train-remote tune tune-local compare register promote reload-check serve serve-image loadtest drift inject-drift pipeline cost swap-check llm-eval llm-gate
 
 help:
 	@grep -E "^[a-zA-Z_-]+:.*?## .*$$" $(MAKEFILE_LIST) | awk -F":.*?## " "{printf \"  %-20s %s\\n\", \$$1, \$$2}"
@@ -34,7 +37,8 @@ train: ## Train locally, outside the container
 	python -m src.train --seed $(SEED) --metrics-out reports/metrics.json
 
 image: ## Build the training image for linux/amd64
-	docker buildx build --platform $(PLATFORM) -t $(IMAGE):$(TAG) --load .
+	docker buildx build --platform $(PLATFORM) --build-arg GIT_COMMIT=$(GIT_COMMIT) \
+	  -t $(IMAGE):$(TAG) --load .
 
 image-push: image ## Push to CONTAINER_REGISTRY via your adapter
 	python -c "from src import config; from cloudlayer.factory import get_adapter; \
@@ -58,14 +62,41 @@ clean: ## Remove local artifacts
 	rm -rf mlruns mlartifacts mlflow.db reports/metrics.json .pytest_cache
 
 # --- Lab 2 -------------------------------------------------------------------
-tune: ## Budgeted hyperparameter study (>=12 trials)
-	python -m src.tune --trials 12 --budget-thb 150
+# Builds and pushes the current tree unless IMAGE_URI names an image already pushed.
+train-remote: $(if $(IMAGE_URI),,image) ## Run the training image as a managed job
+	python scripts/train_remote.py \
+	  $(if $(IMAGE_URI),--image $(IMAGE_URI),--local-tag $(IMAGE):$(TAG)) \
+	  $(if $(SPOT),--spot) -- --seed $(SEED)
+
+# STUDY=<name> resumes a study; INTERRUPT_AT=<n> kills trial n mid-run once, as a drill.
+tune: $(if $(IMAGE_URI),,image) ## Budgeted study on managed spot compute (>=12 trials)
+	python scripts/tune_remote.py \
+	  $(if $(IMAGE_URI),--image $(IMAGE_URI),--local-tag $(IMAGE):$(TAG)) \
+	  --trials 12 --budget-thb 150 --spot --seed $(SEED) \
+	  $(if $(STUDY),--study $(STUDY)) $(if $(INTERRUPT_AT),--interrupt-at $(INTERRUPT_AT))
+
+tune-local: ## Same study on this machine at zero cost (development only)
+	python -m src.tune --trials 12 --budget-thb 150 --seed $(SEED)
 
 compare: ## Rank runs by metric and by cost per point
 	python scripts/compare_runs.py --experiment itcs355-lab2
 
+# TRIAL is the study trial whose configuration gets registered; it is retrained from the
+# current commit first, so the lineage names a commit that exists.
+TRIAL   ?= trial-00
+ALIAS   ?= staging
+VERSION ?= 1
+
+register: $(if $(IMAGE_URI),,image) ## Register the chosen model with lineage, then stage it
+	python scripts/register_model.py \
+	  $(if $(IMAGE_URI),--image $(IMAGE_URI),--local-tag $(IMAGE):$(TAG)) \
+	  --trial $(TRIAL) --promote $(ALIAS) $(if $(SPOT),--spot)
+
+promote: ## Move an alias to an existing version: make promote VERSION=1 ALIAS=production
+	python scripts/register_model.py --promote-only $(VERSION) --promote $(ALIAS)
+
 reload-check: ## Load the registered model by version and score rows
-	python scripts/reload_check.py --name $(MODEL_REGISTRY_NAME) --version $(VERSION)
+	python scripts/reload_check.py --version $(VERSION)
 
 # --- Lab 3 -------------------------------------------------------------------
 serve: ## Run the inference service locally on :8080

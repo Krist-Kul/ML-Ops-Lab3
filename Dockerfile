@@ -43,6 +43,11 @@ RUN mkdir -p /app/mlruns && chown runner:runner /app/mlruns
 
 USER runner
 
+# The image has no .git, so the commit it was built from is baked in here; runs inside
+# the container log it as their git_commit. Last, so a new commit rebuilds only this layer.
+ARG GIT_COMMIT=unknown
+ENV GIT_COMMIT=${GIT_COMMIT}
+
 # Credentials NEVER enter an image layer. They arrive at runtime from SECRET_STORE_PATH
 # or from the platform's identity. If you find yourself adding an ARG for a key, stop.
 ENTRYPOINT ["python", "-m", "src.train"]

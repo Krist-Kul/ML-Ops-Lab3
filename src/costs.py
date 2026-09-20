@@ -9,8 +9,13 @@ is roughly 30% of on-demand across all three providers — SPOT_FACTOR below.
 """
 from __future__ import annotations
 
-# TODO(Lab 2): verify each of these against your provider's pricing page for YOUR region,
-# and record in reports/lab2-comparison.md when you checked and what you found.
+# GCP rows verified 2026-09-21 against the Cloud Billing Catalog API for asia-southeast1,
+# at 33.355 THB/USD (2026-09-18). A Vertex training hour is the Compute Engine price plus a
+# management fee, so it is NOT the VM price you find on the Compute Engine page:
+# n1-standard-4 = 4 x (0.038999 + 0.005850) + 15 x (0.005226 + 0.000784) USD/h. Working and
+# sources are in reports/lab2-comparison.md.
+# TODO(Lab 2): the aws and azure rows are still the handout's starting values. Verify them
+# against your own region before using them for anything.
 PRICE_TABLE: dict[str, dict[str, float]] = {
     "local": {"local": 0.0},
     "aws": {
@@ -25,13 +30,26 @@ PRICE_TABLE: dict[str, dict[str, float]] = {
         "Standard_NC4as_T4_v3": 24.5,
     },
     "gcp": {
-        "n1-standard-4": 7.6,
-        "e2-standard-4": 6.4,
-        "n1-standard-4+t4": 25.2,
+        "n1-standard-4": 8.99,
+        "e2-standard-4": 6.34,
+        "n1-standard-4+t4": 23.19,
     },
 }
 
 SPOT_FACTOR = 0.30
+
+# The 30% rule of thumb does not survive contact with a price list. The management fee is
+# charged at the same rate on spot as on demand, and the underlying discount varies by
+# machine type: in asia-southeast1 an N1 spot hour is 34% of on-demand while an E2 spot hour
+# is 65% — cheap spot capacity is a property of a specific machine type in a specific region,
+# not of "spot". Measured the same way and on the same date as PRICE_TABLE.
+SPOT_FACTORS: dict[str, dict[str, float]] = {
+    "gcp": {
+        "n1-standard-4": 0.34,
+        "e2-standard-4": 0.65,
+        "n1-standard-4+t4": 0.37,
+    },
+}
 DEFAULT_UTILISATIONS = (0.05, 0.25, 0.80)
 
 
@@ -44,7 +62,9 @@ def hourly_rate(provider: str, instance: str, spot: bool = False) -> float:
             f"No rate for {instance!r} on {provider}. Known: {sorted(table)}. "
             "Add the instance you actually used — do not substitute a similar one silently."
         )
-    return table[instance] * (SPOT_FACTOR if spot else 1.0)
+    if not spot:
+        return table[instance]
+    return table[instance] * SPOT_FACTORS.get(provider.lower(), {}).get(instance, SPOT_FACTOR)
 
 
 def cost_per_1k_predictions(

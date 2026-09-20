@@ -1,9 +1,13 @@
 """The portability seam.
 
-Eleven methods. Every managed ML platform sells you the same eleven operations under
+Eleven methods as issued. Every managed ML platform sells you the same operations under
 different names; writing this once is the difference between knowing a product and
 knowing the category. `generate` is the newest of them and the one the vendors are
 currently busiest renaming.
+
+Lab 2 added two more — `get_model` and `promote_model`. Reading a version back and moving
+an alias are as provider-specific as writing one, and leaving them out would have pushed a
+`gs://` path into scripts/, which is the leak this file exists to prevent.
 
 You implement exactly ONE of aws.py, azure.py, or gcp.py. Lab 1 needs only `upload`,
 `download`, and `push_image`. The rest raise NotImplementedError until the lab that
@@ -44,7 +48,30 @@ class CloudAdapter(ABC):
     def wait_training(self, job_id: str) -> dict[str, Any]:
         raise NotImplementedError("Lab 2")
 
-    def register_model(self, model_uri: str, name: str) -> str:
+    def register_model(self, model_uri: str, name: str,
+                       lineage: dict[str, str] | None = None) -> str:
+        """Register the model stored at `model_uri` under `name`. Returns the version.
+
+        `lineage` is the eight fields Lab 2 requires, and they belong on the VERSION, not
+        on the tracking run: a run records how a model was made, a version is what gets
+        promoted, and at promotion time the run may not be the thing in front of you.
+        """
+        raise NotImplementedError("Lab 2")
+
+    def get_model(self, name: str, version: str) -> dict[str, Any]:
+        """The read side of register_model: resolve name + version to at least
+
+            {"artifact_uri": str, "aliases": [str], "lineage": {...}}
+
+        Without this the registry is write-only, and `scripts/reload_check.py` would have
+        to fall back to a path someone remembered — which is the failure the lab is about.
+        """
+        raise NotImplementedError("Lab 2")
+
+    def promote_model(self, name: str, version: str, alias: str) -> dict[str, Any]:
+        """Move `alias` (staging, production, ...) to this version. Returns the version's
+        aliases after the move. Promotion is a separate operation from registration on
+        purpose: registering is a record, promoting is a decision."""
         raise NotImplementedError("Lab 2")
 
     # --- Lab 3 ---------------------------------------------------------------

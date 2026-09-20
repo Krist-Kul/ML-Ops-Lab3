@@ -121,6 +121,69 @@ nothing in Git to show for it.
 
 ---
 
+## Lab 2 — tracking, study, registry
+
+```bash
+make train-remote                 # the Lab 1 container as a Vertex custom job
+make tune                         # 12-trial study, spot, checkpointed to object storage
+make compare                      # reports/lab2-comparison.md, ranked by cost per point
+make register                     # retrain the chosen trial at HEAD, register, stage it
+make reload-check VERSION=1       # load that version FROM the registry and score rows
+make promote VERSION=1 ALIAS=production
+```
+
+Reports: `reports/lab2-study.md` (jobs, trials, the interruption drill),
+`lab2-comparison.md` (table plus the 200-word justification), `lab2-seed-variance.md`,
+`lab2-prices.md` (how the rates in `src/costs.py` were verified), and
+`lab2-registry.md` (the registered version and its lineage).
+
+`make register` refuses to run from a dirty tree. The study itself was run from one, so its
+trials record `<sha>-dirty`, and a lineage field naming a commit nobody can check out is the
+failure the lab is about. The registered version is therefore a retrain of the chosen trial's
+configuration from a clean commit, on the same data and seed, and its metrics are compared
+against the trial's — they match exactly, which is the evidence that the retrain is the same
+model and not merely a similar one.
+
+Lineage lives on the registered **version**, not on the MLflow run: Vertex keeps labels and the
+version description per version, checked by registering a second version with a different commit
+and reading the first one back unchanged. Labels are capped at 63 characters, so the full
+`image_digest` is in the version description and truncated in the label.
+
+### Who may promote a model
+
+Not the person who trained it, and not a rule that only says "a senior engineer". In an
+organisation this repository's model belongs to — maintenance scheduling, where a false negative
+is an unplanned line stop and a false positive is a wasted technician visit — promotion to
+`production` should need two roles:
+
+| Role | What they own |
+|---|---|
+| The model owner (an ML engineer who did **not** train this version) | Reads the lineage and re-runs the reload check against the version. They are checking the record, not the metric |
+| The maintenance lead who consumes the predictions | Accepts the operating point: at the threshold in use, this many extra callouts per week, that many misses |
+
+Evidence they should require, and refuse the promotion without:
+
+1. **All eight lineage fields resolve.** The commit checks out, the image digest exists in the
+   registry, the data hash matches the versioned dataset, the run opens. A field that is present
+   but stale is worse than a missing one.
+2. **A reload from the registry by version**, on a machine that never trained it —
+   `make reload-check VERSION=<n>` — with scores, not just a successful import.
+3. **Test metrics from a split the candidate never saw**, next to the incumbent's on the same
+   split, and a statement of whether the difference exceeds the seed variance measured in
+   `reports/lab2-seed-variance.md`. For this study it does not, which is an argument for leaving
+   the incumbent alone.
+4. **A rollback path**: the version the alias currently points at, and the command that moves it
+   back. Vertex aliases are unique per model, so `make promote VERSION=<old> ALIAS=production`
+   is that command, and it is one API call.
+5. **A stated cost**, training and serving, because promotion is what starts the meter.
+
+In this course the same person does all of it, which is exactly why the rule has to be written
+down rather than felt. Note also that the `default` alias stays on version 1 unless moved:
+registering a newer version does not promote it, and a service that loads "the latest model"
+has decided to promote every training run automatically.
+
+---
+
 ## Notes for the grader
 
 - `make reproduce` needs Docker only. No `cloud.env`, no credentials, no network beyond the
