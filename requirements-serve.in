@@ -1,0 +1,41 @@
+# Serving dependencies. Source of truth; compile to requirements-serve.txt WITH HASHES,
+# inside the image's own interpreter so the lock matches what the image installs:
+#
+#   python scripts/derive_constraints.py
+#   docker run --rm -v "$PWD":/w -w /w \
+#     python@sha256:9534e5a8e315485d4061ed659af0fd78a284c015f9b73661b41d6bab25604534 \
+#     sh -c "pip install pip-tools && pip-compile --generate-hashes \
+#            --constraint=constraints-lab1.txt \
+#            --output-file=requirements-serve.txt requirements-serve.in"
+#
+# The constraint file is the versions requirements.txt already resolved, so serving and
+# training share one resolution. It is also what makes the compile finish: unconstrained,
+# --generate-hashes explores every candidate version of numpy, pandas, scipy and
+# scikit-learn and downloads every wheel of each to hash it — over 7 GB and still running
+# after forty minutes on this machine, against about ten with the constraint.
+#
+# Compiling on the host's Python 3.13 would resolve different wheels from the 3.11 the
+# image runs, and a lock that does not match the interpreter is not a lock.
+#
+# The scientific pins match requirements.in exactly. The model is a scikit-learn 1.8.0
+# pickle: serving it under a different minor version is the unpickling failure Lab 2's
+# reload check exists to catch, and it would surface here as a container that never
+# becomes ready.
+# mlflow is here to read the registered model's MLmodel directory, and it is the heaviest
+# thing in the image. mlflow-skinny is the obvious candidate for a smaller image and a
+# faster cold start — Task 3 measures both before the swap, because a flavour that cannot
+# load the artifact is a container that never becomes ready.
+fastapi==0.141.1
+uvicorn==0.52.4  # the version requirements.txt already resolved; see the note below
+pydantic==2.13.5
+pandas==3.0.2
+numpy==2.4.4
+scikit-learn==1.8.0
+mlflow==3.16.0
+joblib==1.4.2
+
+# The scaffold pinned uvicorn==0.34.0, which cannot be installed alongside the versions
+# Lab 1's lock already resolved for this repo — 0.34 predates the starlette 1.6 line that
+# fastapi 0.141.1 pulls in, and pip-compile refuses the combination outright. Serving and
+# training therefore share one uvicorn. Two locks disagreeing about a shared dependency is
+# how an image passes CI and fails on the endpoint.

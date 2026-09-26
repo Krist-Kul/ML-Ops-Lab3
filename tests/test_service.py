@@ -1,7 +1,19 @@
-"""Lab 3/4 — service contract tests."""
+"""Lab 3/4 — service contract tests.
+
+Two kinds of test here. The contract tests use one shared client. The lifecycle tests
+each build their own app, because "loaded once at startup", "ready only after it can
+score", and "alive while loading" are claims about startup, and a shared client has
+already started up.
+"""
 from __future__ import annotations
 
+import importlib
+import io
+import json
+import logging
 import os
+import threading
+from contextlib import contextmanager
 
 import pytest
 
@@ -17,8 +29,9 @@ VALID = {
 }
 
 
-@pytest.fixture(scope="module")
-def client():
+def _local_model_path():
+    """A model on disk for the tests to serve. The deployed service loads a registered
+    version through the adapter; this exists so CI needs no cloud account."""
     if not RAW.exists():
         pytest.skip("run `make data` first")
     model_path = config.REPO_ROOT / "reports" / "model.joblib"
@@ -33,15 +46,33 @@ def client():
         model.fit(train_df[data.FEATURES], train_df[data.TARGET])
         model_path.parent.mkdir(parents=True, exist_ok=True)
         joblib.dump(model, model_path)
+    return model_path
 
-    os.environ["MODEL_PATH"] = str(model_path)
+
+@contextmanager
+def app_module(**env: str):
+    """A freshly imported service.app with this environment, restored afterwards."""
+    saved = dict(os.environ)
+    os.environ["MODEL_PATH"] = str(_local_model_path())
     os.environ["MODEL_VERSION"] = "test-1"
     os.environ.pop("MODEL_REGISTRY_NAME", None)
+    os.environ.update(env)
+    try:
+        import service.app as module
 
-    from service.app import app
-    with TestClient(app) as c:
+        yield importlib.reload(module)
+    finally:
+        os.environ.clear()
+        os.environ.update(saved)
+
+
+@pytest.fixture(scope="module")
+def client():
+    with app_module() as module, TestClient(module.app) as c:
         yield c
 
+
+# --- contract ----------------------------------------------------------------
 
 def test_health_and_ready_are_different(client):
     """Liveness passes whenever the process is up. Readiness only when it can score."""
@@ -57,8 +88,8 @@ def test_predict_returns_probability_and_version(client):
     body = r.json()
     assert 0.0 <= body["probability"] <= 1.0
     assert body["model_version"] == "test-1"
+    assert body["request_id"] == r.headers["x-request-id"]
     assert r.headers["x-model-version"] == "test-1"
-    assert r.headers["x-request-id"]
 
 
 def test_out_of_range_input_is_rejected(client):
@@ -77,6 +108,27 @@ def test_missing_field_is_rejected(client):
     assert client.post("/predict", json=incomplete).status_code == 422
 
 
+def test_rejection_names_the_field_and_echoes_the_value(client):
+    """A 422 that does not say which field is a support ticket, not an error message."""
+    body = client.post("/predict", json={**VALID, "load_pct": 250.0}).json()
+    assert body["error"] == "validation_error"
+    offending = [d for d in body["detail"] if d["field"] == "load_pct"]
+    assert offending and offending[0]["received"] == 250.0
+    assert body["request_id"] and body["model_version"] == "test-1"
+
+
+def test_schema_bounds_match_the_data_contract():
+    """service/schemas.py and src/data.PLAUSIBLE_RANGES must not drift apart: the service
+    would accept rows the training data never contained, and nothing would say so."""
+    from service.schemas import PredictRequest
+
+    for feature, (low, high) in data.PLAUSIBLE_RANGES.items():
+        meta = PredictRequest.model_fields[feature].metadata
+        bounds = {type(m).__name__: getattr(m, "ge", getattr(m, "le", None)) for m in meta}
+        assert bounds.get("Ge") == low, feature
+        assert bounds.get("Le") == high, feature
+
+
 def test_batch_matches_singles(client):
     rows = [VALID, {**VALID, "temp_c": 92.0}]
     batch = client.post("/predict/batch", json={"rows": rows}).json()["probabilities"]
@@ -87,3 +139,112 @@ def test_batch_matches_singles(client):
 def test_batch_size_limit_enforced(client):
     r = client.post("/predict/batch", json={"rows": [VALID] * 101})
     assert r.status_code == 422
+
+
+def test_rejection_does_not_echo_the_whole_payload_back(client):
+    """An oversized batch must not come back as an oversized error body: that is the
+    request amplified at the sender, and at whoever stores the logs."""
+    body = client.post("/predict/batch", json={"rows": [VALID] * 101}).json()
+    received = body["detail"][0]["received"]
+    assert received == {"type": "array", "length": 101}
+    assert len(json.dumps(body)) < 1000
+
+
+def test_request_id_from_the_caller_is_kept(client):
+    """A caller-supplied id is what joins their trace to our logs. Minting a new one
+    breaks the join silently."""
+    r = client.post("/predict", json=VALID, headers={"x-request-id": "caller-abc"})
+    assert r.headers["x-request-id"] == "caller-abc"
+    assert r.json()["request_id"] == "caller-abc"
+
+
+def test_every_log_line_is_one_json_object(client):
+    """The log format is only structured if it survives a message containing quotes."""
+    stream = io.StringIO()
+    handler = logging.StreamHandler(stream)
+    import service.app as module
+
+    handler.setFormatter(module.JsonFormatter())
+    logging.getLogger().addHandler(handler)
+    try:
+        client.post("/predict", json=VALID)
+        client.post("/predict", json={**VALID, "surprise": '"quoted"\nnewline'})
+    finally:
+        logging.getLogger().removeHandler(handler)
+
+    lines = [json.loads(line) for line in stream.getvalue().splitlines() if line.strip()]
+    requests = [rec for rec in lines if rec["msg"] == "request"]
+    assert len(requests) == 2
+    for rec in requests:
+        assert rec["request_id"] != "-"
+        assert rec["model_version"] == "test-1"
+        assert rec["latency_ms"] >= 0
+        assert rec["path"] == "/predict"
+    assert requests[0]["rows"] == 1
+    assert requests[1]["status"] == 422
+
+
+# --- lifecycle ---------------------------------------------------------------
+
+def test_model_is_loaded_once_at_startup():
+    """Per-request loading is the commonest cause of a p99 that looks nothing like p50,
+    and it is invisible until you count."""
+    with app_module() as module:
+        with TestClient(module.app) as c:
+            for _ in range(5):
+                assert c.post("/predict", json=VALID).status_code == 200
+        assert module.STATE.loads == 1
+
+
+def test_alive_while_loading_but_not_ready():
+    """The handout's diagram: /health 200 and /ready 503 in the window before the model
+    exists. Only reproducible because the loader runs off the startup path."""
+    with app_module(MODEL_LOAD_WAIT_S="0") as module:
+        release = threading.Event()
+        real_load = module._load_model
+        module._load_model = lambda: (release.wait(5), real_load())[1]
+        try:
+            with TestClient(module.app) as c:
+                assert c.get("/health").json()["status"] == "alive"
+                not_ready = c.get("/ready")
+                assert not_ready.status_code == 503
+                assert not_ready.json()["phase"] == "loading"
+                assert c.post("/predict", json=VALID).status_code == 503
+
+                release.set()
+                for _ in range(100):
+                    if c.get("/ready").status_code == 200:
+                        break
+                    threading.Event().wait(0.05)
+                assert c.get("/ready").status_code == 200
+                assert c.post("/predict", json=VALID).status_code == 200
+        finally:
+            module._load_model = real_load
+
+
+def test_a_failed_load_stays_alive_and_never_ready():
+    """Liveness must not fail here: restarting the container repeats the same failure and
+    loses the logs that explain it."""
+    with app_module(MODEL_PATH="reports/does-not-exist.joblib") as module:
+        with TestClient(module.app) as c:
+            assert c.get("/health").json()["status"] == "alive"
+            ready = c.get("/ready")
+            assert ready.status_code == 503
+            assert ready.json()["phase"] == "failed"
+            assert "does-not-exist" in ready.json()["reason"]
+            assert c.post("/predict", json=VALID).status_code == 503
+
+
+def test_readiness_requires_scoring_not_just_unpickling():
+    """A model that loads but cannot predict is the failure that looks healthy."""
+    class Broken:
+        def predict_proba(self, frame):
+            raise ValueError("feature names should match those that were passed during fit")
+
+    with app_module() as module:
+        module._load_model = lambda: (Broken(), {"source": "file", "version": "broken",
+                                                 "artifact_uri": "", "aliases": []})
+        with TestClient(module.app) as c:
+            assert c.get("/health").json()["status"] == "alive"
+            assert c.get("/ready").status_code == 503
+            assert "feature names" in c.get("/ready").json()["reason"]

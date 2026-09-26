@@ -1,13 +1,22 @@
 # ITCS355 Lab 3 — serving image
 #
-# TODO(Lab 3): pin by digest, as you did for the training image in Lab 1.
-FROM python:3.11-slim AS builder
+# Base pinned BY DIGEST, as in the training image. A moving tag is the commonest reason a
+# build stops reproducing, and on a serving image it is worse than on a training one: the
+# model is a scikit-learn 1.8.0 pickle, so a base whose wheels drift under it produces a
+# container that starts, passes liveness, and can never become ready.
+# This is the multi-arch index digest, so the same line resolves on amd64 and arm64.
+# Refresh it deliberately with:
+#     docker buildx imagetools inspect python:3.11-slim
+FROM python@sha256:9534e5a8e315485d4061ed659af0fd78a284c015f9b73661b41d6bab25604534 AS builder
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /build
 COPY requirements-serve.txt ./
-RUN pip install --prefix=/install -r requirements-serve.txt
+# --require-hashes turns a silently substituted package into a build failure. It works
+# only because requirements-serve.txt is compiled with --generate-hashes, in this same
+# interpreter — see requirements-serve.in for the command.
+RUN pip install --require-hashes --prefix=/install -r requirements-serve.txt
 
-FROM python:3.11-slim AS runtime
+FROM python@sha256:9534e5a8e315485d4061ed659af0fd78a284c015f9b73661b41d6bab25604534 AS runtime
 RUN useradd --create-home --uid 10001 runner
 ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app
 COPY --from=builder /install /usr/local
@@ -17,11 +26,35 @@ COPY --chown=runner:runner src/ ./src/
 COPY --chown=runner:runner cloudlayer/ ./cloudlayer/
 USER runner
 
+# Serve the port before the model exists: liveness answers alive, readiness answers 503
+# until the model has loaded AND scored a row. Blocking startup on the load would leave
+# the platform's probes hitting a closed port, which reads as a crash loop rather than as
+# a slow start. Locally the default is 30s, so a terminal and CI are deterministic.
+ENV MODEL_LOAD_WAIT_S=0
+
+# Which model, by version. Supplied at deploy time, never baked in: an image that names a
+# version cannot be rolled back without a rebuild, which is Task 4's whole problem.
+#   MODEL_VERSION         a registry version id ("1") or an alias ("production")
+#   MODEL_REGISTRY_NAME   defaults to the value in cloud.env
+ENV MODEL_VERSION=production
+
 EXPOSE 8080
-# TODO(Lab 3): your provider expects specific health and predict paths.
+# TODO(Lab 3, Task 2): your provider expects specific health and predict paths.
 #   AWS SageMaker  -> /ping and /invocations
 #   Azure ML       -> configurable liveness route on the deployment
 #   Vertex AI      -> health and predict routes declared on the Model resource
 # Absorb the difference in cloudlayer/, or map the paths here. Do NOT rename the routes
 # in service/app.py — that is what makes the image non-portable.
-CMD ["uvicorn", "service.app:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "2"]
+#
+# TODO(Lab 3, Task 2): decide where the artifact comes from on the endpoint. Either the
+# platform hands the container its artifact (Vertex sets AIP_STORAGE_URI, SageMaker
+# unpacks to /opt/ml/model, Azure ML sets AZUREML_MODEL_DIR) and this image stays free of
+# provider SDKs, or the container resolves the version itself through the adapter and the
+# provider SDK has to be installed here. The first keeps one image portable across all
+# three; the second keeps the registry lookup in our code. Measure the cold start of both
+# before choosing — that number belongs in Task 3.
+
+# One worker per container by default: each worker loads its own copy of the model, so
+# --workers 2 doubles resident memory and doubles cold start for no throughput gain on a
+# 2-vCPU instance. Task 3 measures whether that trade is worth making.
+CMD ["uvicorn", "service.app:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]

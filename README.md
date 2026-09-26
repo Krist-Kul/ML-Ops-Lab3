@@ -214,6 +214,48 @@ has decided to promote every training run automatically.
 
 ---
 
+## Lab 3 — serving (Task 1: the inference service)
+
+```bash
+make serve VERSION=1              # serve the REGISTERED version, resolved through the adapter
+make serve VERSION=production     # an alias resolves too; responses report the version it names
+make serve-local                  # a locally trained file; development only
+make smoke-local                  # hit all four routes and print the bodies
+make serve-image                  # build the serving image, base pinned by digest
+pytest -q tests/test_service.py   # 16 tests: the contract, and the startup lifecycle
+```
+
+| Route | Purpose |
+|---|---|
+| `GET /health` | Liveness. The process is up. Never touches the model |
+| `GET /ready` | Readiness. The model is loaded **and has scored a row** |
+| `POST /predict` | One row |
+| `POST /predict/batch` | 1–100 rows |
+
+The model is resolved by `adapter.get_model(name, version)` and loaded **once**, on a
+background thread, so the port opens before the model exists: `/health` answers alive while
+`/ready` answers 503 for the 7.3 s the artifact takes to download and unpickle. That window is
+the point of the two routes, and it only exists if the load is off the startup path. Readiness
+is then earned by scoring a midpoint row — an artifact that unpickles but cannot predict is the
+failure that looks healthy.
+
+Every response, success or error, carries the **resolved** registry version and the request id;
+`production` never appears in a response body, because an alias moves and Task 4 will move it.
+`MODEL_VERSION` is deployment configuration, never baked into the image, so a rollback is a
+config change rather than a rebuild.
+
+Logs are one JSON object per line built with `json.dumps` — 13 of 13 lines on the last run,
+uvicorn's own included. Two libraries had to be silenced to keep that true
+(`MLFLOW_DISABLE_AGENT_HINT`, `MLFLOW_ENABLE_ARTIFACTS_PROGRESS_BAR`): a log line a collector
+cannot parse takes the whole batch with it.
+
+Evidence, decisions, and the cold-start and latency figures that Task 3 starts from:
+`reports/lab3-service.md`. Tasks 2–5 (deploy, load test, canary and rollback, cost per 1,000)
+are not done yet; `service/Dockerfile.serve` carries the two `TODO(Lab 3, Task 2)` markers that
+say what the endpoint still has to decide.
+
+---
+
 ## Notes for the grader
 
 - `make reproduce` needs Docker only. No `cloud.env`, no credentials, no network beyond the

@@ -11,7 +11,7 @@ PLATFORM ?= linux/amd64
 SEED ?= 20260101
 
 .PHONY: help setup cloud-check data test portability-audit train image image-push reproduce verify clean teardown \
-        train-remote tune tune-local compare register promote reload-check serve serve-image loadtest drift inject-drift pipeline cost swap-check llm-eval llm-gate
+        train-remote tune tune-local compare register promote reload-check serve serve-local serve-image smoke-local loadtest drift inject-drift pipeline cost swap-check llm-eval llm-gate
 
 help:
 	@grep -E "^[a-zA-Z_-]+:.*?## .*$$" $(MAKEFILE_LIST) | awk -F":.*?## " "{printf \"  %-20s %s\\n\", \$$1, \$$2}"
@@ -99,9 +99,16 @@ reload-check: ## Load the registered model by version and score rows
 	python scripts/reload_check.py --version $(VERSION)
 
 # --- Lab 3 -------------------------------------------------------------------
-serve: ## Run the inference service locally on :8080
+# VERSION is a registry version id or an alias: make serve VERSION=production
+serve: ## Serve the REGISTERED version locally on :8080, resolved through the adapter
+	MODEL_VERSION=$(VERSION) uvicorn service.app:app --port 8080
+
+serve-local: ## Serve a locally trained file instead. Development only — not submittable
 	python scripts/export_model.py --out reports/model.joblib
 	MODEL_PATH=reports/model.joblib MODEL_VERSION=local uvicorn service.app:app --port 8080
+
+smoke-local: ## Hit all four routes against a running local service, as JSON evidence
+	bash scripts/smoke_service.sh $(or $(TARGET),http://127.0.0.1:8080)
 
 serve-image: ## Build the serving image
 	docker buildx build --platform $(PLATFORM) -f service/Dockerfile.serve -t itcs355-serve:$(TAG) --load .
