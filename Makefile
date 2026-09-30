@@ -11,7 +11,7 @@ PLATFORM ?= linux/amd64
 SEED ?= 20260101
 
 .PHONY: help setup cloud-check data test portability-audit train image image-push reproduce verify clean teardown \
-        train-remote tune tune-local compare register promote reload-check serve serve-local serve-image smoke-local loadtest drift inject-drift pipeline cost swap-check llm-eval llm-gate
+        train-remote tune tune-local compare register promote reload-check serve serve-local serve-image smoke-local deploy smoke endpoint-status loadtest drift inject-drift pipeline cost swap-check llm-eval llm-gate
 
 help:
 	@grep -E "^[a-zA-Z_-]+:.*?## .*$$" $(MAKEFILE_LIST) | awk -F":.*?## " "{printf \"  %-20s %s\\n\", \$$1, \$$2}"
@@ -54,9 +54,10 @@ reproduce: data image ## THE ONE COMMAND. Grader runs this.
 verify: ## Check the produced metric against the README claim
 	python scripts/verify_metric.py
 
-teardown: ## Delete every resource tagged course=itcs355 for this lab
-	python -c "from src import config; from cloudlayer.factory import get_adapter; \
-	cfg=config.load(); print(get_adapter(cfg).teardown(cfg.tags(1)))"
+# LAB selects which lab's resources go. Lab 3 is the one that creates a billed endpoint.
+LAB ?= 3
+teardown: ## Delete every resource tagged course=itcs355 for LAB (default 3)
+	python scripts/teardown.py --lab $(LAB)
 
 clean: ## Remove local artifacts
 	rm -rf mlruns mlartifacts mlflow.db reports/metrics.json .pytest_cache
@@ -109,6 +110,21 @@ serve-local: ## Serve a locally trained file instead. Development only — not s
 
 smoke-local: ## Hit all four routes against a running local service, as JSON evidence
 	bash scripts/smoke_service.sh $(or $(TARGET),http://127.0.0.1:8080)
+
+ENDPOINT ?= $(shell grep -E "^MODEL_REGISTRY_NAME=" cloud.env 2>/dev/null | cut -d= -f2)-endpoint
+INSTANCE ?= n1-standard-2
+
+deploy: serve-image ## Push the serving image, register a serving version, deploy the endpoint
+	python scripts/deploy.py --local-tag itcs355-serve:$(TAG) \
+	  --endpoint $(ENDPOINT) --instance $(INSTANCE) \
+	  $(if $(SOURCE_VERSION),--source-version $(SOURCE_VERSION)) \
+	  $(if $(TRAFFIC),--traffic $(TRAFFIC))
+
+endpoint-status: ## What is deployed, its traffic share, and what it costs per hour
+	python scripts/endpoint_status.py --endpoint $(ENDPOINT) $(if $(UNDEPLOY),--undeploy $(UNDEPLOY))
+
+smoke: ## Call the endpoint with three known payloads and check them against the registry
+	python scripts/smoke_endpoint.py --endpoint $(ENDPOINT) --rejects
 
 serve-image: ## Build the serving image
 	docker buildx build --platform $(PLATFORM) -f service/Dockerfile.serve -t itcs355-serve:$(TAG) --load .

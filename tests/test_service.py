@@ -186,6 +186,27 @@ def test_every_log_line_is_one_json_object(client):
 
 # --- lifecycle ---------------------------------------------------------------
 
+def test_logs_go_to_stdout_with_a_severity(capsys):
+    """A platform reads a container's stderr as errors. Logging INFO there makes a healthy
+    endpoint report a steady stream of errors from its own health checks, which is how an
+    error-rate alert becomes noise before it is ever used."""
+    import service.app as module
+
+    saved = logging.getLogger().handlers
+    log = module._configure_logging()
+    try:
+        capsys.readouterr()
+        log.info("probe", extra={"fields": {"path": "/ready", "status": 200}})
+        captured = capsys.readouterr()
+    finally:
+        logging.getLogger().handlers = saved
+
+    assert captured.err == ""
+    record = json.loads(captured.out.strip().splitlines()[-1])
+    assert record["severity"] == record["level"] == "INFO"
+    assert record["path"] == "/ready"
+
+
 def test_model_is_loaded_once_at_startup():
     """Per-request loading is the commonest cause of a p99 that looks nothing like p50,
     and it is invisible until you count."""

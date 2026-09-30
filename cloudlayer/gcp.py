@@ -219,7 +219,8 @@ class GcpAdapter(CloudAdapter):
 
     def register_model(self, model_uri: str, name: str,
                        lineage: dict[str, str] | None = None,
-                       serving_image: str | None = None) -> str:
+                       serving_image: str | None = None,
+                       serving: dict[str, Any] | None = None) -> str:
         """Upload the model directory at `model_uri` (gs://...) as a new version of the
         registered model `name`. Returns the version id, e.g. "1".
 
@@ -228,7 +229,9 @@ class GcpAdapter(CloudAdapter):
         image that trained it — measured reason: the newest prebuilt sklearn serving
         container is sklearn-cpu.1-6 and this model is pickled by scikit-learn 1.8, so a
         prebuilt container would record an environment that cannot load the artifact.
-        Lab 3 replaces this with a serving image that answers /health and /predict."""
+        `serving` is Lab 3's addition: the routes, port, command and environment Vertex
+        needs to call the container. It is provider shape — predict_route, health_route,
+        ports — and it is why this argument exists here rather than in scripts/."""
         import json
 
         from google.cloud import aiplatform_v1 as v
@@ -246,7 +249,7 @@ class GcpAdapter(CloudAdapter):
         model = v.Model(
             display_name=name,
             artifact_uri=model_uri,
-            container_spec=v.ModelContainerSpec(image_uri=image),
+            container_spec=self._container_spec(image, serving),
             # Lineage twice, on purpose: labels are queryable in the console and in
             # `gcloud ai models list --filter`, the description holds the untruncated
             # values a rebuild actually needs.
@@ -259,6 +262,35 @@ class GcpAdapter(CloudAdapter):
                                        parent_model=parent_model or None)
         result = self._models().upload_model(request=request).result()
         return result.model_version_id
+
+    def _container_spec(self, image: str, serving: dict[str, Any] | None):
+        """The container a registered version names.
+
+        Without `serving` this is just an image, which is all Lab 2 needed: Vertex refuses
+        a version with no container, but nothing ever calls it. With it, the version is
+        deployable — Vertex will POST to `predict_route` and poll `health_route` on
+        `ports[0]`, and passes all three back to the container as AIP_* variables.
+        """
+        from google.cloud import aiplatform_v1 as v
+        from google.protobuf import duration_pb2
+
+        if not serving:
+            return v.ModelContainerSpec(image_uri=image)
+        return v.ModelContainerSpec(
+            image_uri=image,
+            command=list(serving.get("command", [])),
+            args=list(serving.get("args", [])),
+            env=[v.EnvVar(name=k, value=str(val))
+                 for k, val in serving.get("env", {}).items()],
+            ports=[v.Port(container_port=int(serving.get("port", 8080)))],
+            predict_route=serving.get("predict_route", "/v1/predict"),
+            health_route=serving.get("health_route", "/ready"),
+            # How long a replica has to answer the health route before Vertex gives up.
+            # The model is downloaded and unpickled inside that window, so it has to be
+            # bigger than the cold start, not bigger than the process start.
+            deployment_timeout=duration_pb2.Duration(
+                seconds=int(serving.get("deployment_timeout_s", 900))),
+        )
 
     def get_model(self, name: str, version: str) -> dict[str, Any]:
         """Resolve name + version to the artifact and the lineage recorded with it.
@@ -296,7 +328,213 @@ class GcpAdapter(CloudAdapter):
             name=f"{resource}@{model.version_id}", version_aliases=[alias])
         return self.get_model(name, model.version_id)
 
-    # deploy / invoke                   -> Lab 3 (Vertex Endpoint)
+    # --- Lab 3: Vertex Endpoints --------------------------------------------
+    # An Endpoint is the billed object: it owns replicas and a traffic split, and it keeps
+    # costing money whether or not anyone calls it. A DeployedModel is one model version
+    # attached to an endpoint with its own machines. Deploying twice to one endpoint is
+    # what makes Task 4's canary a traffic-split change rather than a redeploy.
+
+    def serving_spec(self, env: dict[str, str] | None = None) -> dict[str, Any]:
+        """Vertex's half of the serving contract.
+
+        The image's own CMD runs the neutral app, which knows nothing about Vertex. Here
+        the command is replaced with the shim in `cloudlayer/gcp_serving.py`, which speaks
+        the {"instances": [...]} envelope and translates AIP_STORAGE_URI into the
+        neutral MODEL_URI. Same image, same bytes, provider-shaped entrypoint.
+
+        Health is readiness, not liveness. Pointing Vertex at /health would mean traffic
+        arrives as soon as the process is up and fails until the model finishes loading —
+        the exact bug the two routes exist to prevent.
+        """
+        return {
+            "command": ["uvicorn"],
+            "args": ["cloudlayer.gcp_serving:app", "--host", "0.0.0.0", "--port", "8080",
+                     "--workers", "1"],
+            "env": dict(env or {}),
+            "port": 8080,
+            "predict_route": "/v1/predict",
+            "health_route": "/ready",
+            "deployment_timeout_s": 900,
+        }
+
+    def _endpoints(self):
+        from google.cloud import aiplatform_v1
+
+        return aiplatform_v1.EndpointServiceClient(
+            client_options={"api_endpoint": f"{self.cfg.region}-aiplatform.googleapis.com"})
+
+    def _find_endpoint(self, name: str) -> str | None:
+        """Resource name of the endpoint called `name`, or None. `name` may already be a
+        full resource name, in which case it is returned unchanged."""
+        from google.cloud import aiplatform_v1 as v
+
+        if name.startswith("projects/"):
+            return name
+        found = list(self._endpoints().list_endpoints(v.ListEndpointsRequest(
+            parent=self._registry_parent(), filter=f'display_name="{name}"')))
+        return found[0].name if found else None
+
+    def _service_account(self) -> str:
+        """The endpoint's run-time identity, or "" to accept the Vertex service agent.
+
+        The container reads the model artifact from the bucket, so this is the identity
+        that needs object read there — not the CLI identity that ran the deploy.
+        """
+        identity = self.cfg.identity_ref.removeprefix("serviceAccount:")
+        return identity if identity.endswith(".gserviceaccount.com") else ""
+
+    def deploy(self, model_ref: str, endpoint: str, instance: str,
+               min_replicas: int = 1, max_replicas: int = 1, spot: bool = False,
+               traffic: int = 100, lab: int = 3, timeout_s: int = 2400) -> str:
+        """Deploy `model_ref` ("<name>@<version>", or "<name>" for the default version) to
+        the endpoint called `endpoint`, creating it if it does not exist. Returns the
+        endpoint resource name.
+
+        `traffic` is the share this deployment takes; the remainder stays with whatever is
+        already deployed. 100 is the Task 2 case — first model, all the traffic.
+        """
+        from google.cloud import aiplatform_v1 as v
+
+        name, _, version = model_ref.partition("@")
+        resource = self._find_model(name)
+        if resource is None:
+            raise LookupError(f"No registered model named {name!r}. Run `make register`.")
+        model = self._models().get_model(name=f"{resource}@{version or 'default'}")
+
+        endpoints = self._endpoints()
+        target = self._find_endpoint(endpoint)
+        if target is None:
+            created = endpoints.create_endpoint(
+                parent=self._registry_parent(),
+                endpoint=v.Endpoint(display_name=endpoint, labels=self.cfg.tags(lab)),
+            ).result(timeout=timeout_s)
+            target = created.name
+
+        deployed = v.DeployedModel(
+            model=f"{resource}@{model.version_id}",
+            display_name=f"{name}-v{model.version_id}",
+            dedicated_resources=v.DedicatedResources(
+                machine_spec=v.MachineSpec(machine_type=instance),
+                min_replica_count=min_replicas,
+                max_replica_count=max_replicas,
+                # Spot replicas are evicted without warning. Cheap for a demo, dishonest
+                # under a load test: the p99 you measure is then the platform's eviction
+                # behaviour, not your service's.
+                spot=spot,
+            ),
+            service_account=self._service_account(),
+        )
+        # "0" is how the API names the model being deployed by this request. Existing
+        # deployments keep the rest of the split, so this is also the canary primitive.
+        response = endpoints.deploy_model(
+            endpoint=target, deployed_model=deployed,
+            traffic_split={"0": int(traffic)},
+        ).result(timeout=timeout_s)
+        self._last_deployed_model_id = response.deployed_model.id
+        return target
+
+    def list_deployments(self, endpoint: str) -> list[dict[str, Any]]:
+        """What is attached to this endpoint, and what share of traffic each one has.
+
+        Traffic and replicas are different facts, and conflating them is expensive: a
+        deployment at 0% traffic still has its machines, and still bills for them.
+        """
+        target = self._find_endpoint(endpoint)
+        if target is None:
+            raise LookupError(f"No endpoint named {endpoint!r}.")
+        live = self._endpoints().get_endpoint(name=target)
+        split = dict(live.traffic_split)
+        return [{
+            "deployed_model_id": deployed.id,
+            "display_name": deployed.display_name,
+            "model": deployed.model,
+            "model_version_id": deployed.model_version_id,
+            "traffic_percent": split.get(deployed.id, 0),
+            "instance": deployed.dedicated_resources.machine_spec.machine_type,
+            "min_replicas": deployed.dedicated_resources.min_replica_count,
+            "max_replicas": deployed.dedicated_resources.max_replica_count,
+            "created": deployed.create_time.rfc3339() if deployed.create_time else "",
+        } for deployed in live.deployed_models]
+
+    def undeploy(self, endpoint: str, deployed_model_id: str, timeout_s: int = 1800) -> str:
+        """Detach one deployed model and release its replicas. Returns its id.
+
+        This is the call that stops the meter for that deployment. Moving traffic to 0
+        does not: Vertex keeps the machines, ready to take traffic back, and keeps
+        charging for them.
+        """
+        target = self._find_endpoint(endpoint)
+        if target is None:
+            raise LookupError(f"No endpoint named {endpoint!r}.")
+        self._endpoints().undeploy_model(
+            endpoint=target, deployed_model_id=deployed_model_id).result(timeout=timeout_s)
+        return deployed_model_id
+
+    def invoke(self, endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
+        """Call the endpoint once. `payload` is either one row, or {"instances": [...]}.
+
+        Returns the predictions plus what the platform says about who answered — the
+        deployed model id and the model version id. Those come from Vertex, not from the
+        container, which is what makes them usable as evidence in Task 4: a container can
+        claim any version it likes.
+        """
+        import time
+
+        from google.cloud import aiplatform_v1 as v
+        from google.protobuf import json_format, struct_pb2
+
+        target = self._find_endpoint(endpoint)
+        if target is None:
+            raise LookupError(f"No endpoint named {endpoint!r} in {self._registry_parent()}.")
+
+        rows = payload.get("instances") if isinstance(payload, dict) and "instances" in payload \
+            else [payload]
+        instances = [json_format.ParseDict(row, struct_pb2.Value()) for row in rows]
+
+        client = v.PredictionServiceClient(
+            client_options={"api_endpoint": f"{self.cfg.region}-aiplatform.googleapis.com"})
+        started = time.perf_counter()
+        response = client.predict(endpoint=target, instances=instances)
+        latency_ms = (time.perf_counter() - started) * 1000
+
+        # Convert the whole response rather than each prediction: proto-plus has already
+        # turned the repeated Values into its own map/list wrappers, which MessageToDict
+        # cannot take one at a time. Going through the raw message gives plain JSON.
+        raw = json_format.MessageToDict(v.PredictResponse.pb(response))
+        return {
+            "endpoint": target,
+            "predictions": raw.get("predictions", []),
+            "deployed_model_id": response.deployed_model_id,
+            "model_version_id": response.model_version_id,
+            "model": response.model,
+            # Round trip from this machine, so it includes the internet. The endpoint's own
+            # latency is what the load test measures; this number is for smoke tests.
+            "latency_ms": round(latency_ms, 2),
+        }
+
+    def teardown(self, tags: dict[str, str]) -> list[str]:
+        """Delete every endpoint carrying these labels, undeploying its models first.
+
+        Vertex refuses to delete an endpoint that still has traffic on it, which is the
+        API telling you the truth: the billed thing is the replicas, and they go first.
+        Registered models and their artifacts are left alone — they cost storage, not
+        compute, and Lab 4 needs them.
+        """
+        from google.cloud import aiplatform_v1 as v
+
+        selector = " AND ".join(f'labels.{k}="{val}"' for k, val in tags.items())
+        endpoints = self._endpoints()
+        removed: list[str] = []
+        for endpoint in endpoints.list_endpoints(v.ListEndpointsRequest(
+                parent=self._registry_parent(), filter=selector)):
+            for deployed in endpoint.deployed_models:
+                endpoints.undeploy_model(
+                    endpoint=endpoint.name, deployed_model_id=deployed.id,
+                ).result(timeout=1800)
+                removed.append(f"deployed_model {deployed.id} ({deployed.display_name})")
+            endpoints.delete_endpoint(name=endpoint.name).result(timeout=1800)
+            removed.append(f"endpoint {endpoint.name}")
+        return removed
+
     # emit_metric                       -> Lab 4 (Cloud Monitoring time series)
     # generate                          -> Lab 5 (managed LLM endpoint; read usageMetadata for tokens)
-    # teardown                          -> Lab 5 (filter resources by label)

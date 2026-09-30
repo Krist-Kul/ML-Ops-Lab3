@@ -75,10 +75,35 @@ class CloudAdapter(ABC):
         raise NotImplementedError("Lab 2")
 
     # --- Lab 3 ---------------------------------------------------------------
+    def serving_spec(self, env: dict[str, str] | None = None) -> dict[str, Any]:
+        """How THIS provider's endpoint talks to the serving container: the routes it
+        calls, the port it calls them on, and the command that starts the process.
+
+        Added in Lab 3 for the same reason `get_model` was added in Lab 2. The three
+        providers disagree about exactly this — SageMaker insists on /ping and
+        /invocations, Azure ML wants a scoring script and its own liveness route, Vertex
+        makes you declare both on the model resource — and the alternative was a
+        provider's route names sitting in `scripts/`, which is the leak the seam exists
+        to prevent. The container image stays identical across all three.
+        """
+        raise NotImplementedError("Lab 3")
+
     def deploy(self, model_ref: str, endpoint: str, instance: str) -> str:
         raise NotImplementedError("Lab 3")
 
     def invoke(self, endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
+        raise NotImplementedError("Lab 3")
+
+    def list_deployments(self, endpoint: str) -> list[dict[str, Any]]:
+        """What is deployed on this endpoint, with each one's traffic share."""
+        raise NotImplementedError("Lab 3")
+
+    def undeploy(self, endpoint: str, deployed_model_id: str) -> str:
+        """Detach one deployed model and release its replicas.
+
+        Separate from moving traffic, because the two are separate on every provider and
+        the difference is the bill: a deployment at 0% traffic keeps its machines.
+        """
         raise NotImplementedError("Lab 3")
 
     # --- Lab 4 ---------------------------------------------------------------

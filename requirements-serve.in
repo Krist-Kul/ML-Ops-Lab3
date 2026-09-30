@@ -34,6 +34,14 @@ scikit-learn==1.8.0
 mlflow==3.16.0
 joblib==1.4.2
 
+# The one provider dependency in the image, and it is here for a reason worth stating.
+# SageMaker unpacks the model to /opt/ml/model and Azure ML sets AZUREML_MODEL_DIR: both
+# hand the container a local directory, which needs no SDK. Vertex hands it a gs:// URI in
+# AIP_STORAGE_URI, so reading that URI needs a storage client. Installing it keeps ONE
+# image deployable on all three, which is the requirement; installing three SDKs to avoid
+# naming a provider in a lock file would not.
+google-cloud-storage==3.13.1  # the version this repo already uses for Lab 1 and Lab 2
+
 # The scaffold pinned uvicorn==0.34.0, which cannot be installed alongside the versions
 # Lab 1's lock already resolved for this repo — 0.34 predates the starlette 1.6 line that
 # fastapi 0.141.1 pulls in, and pip-compile refuses the combination outright. Serving and

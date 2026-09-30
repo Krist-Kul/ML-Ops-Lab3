@@ -23,6 +23,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sys
 import threading
 import time
 import uuid
@@ -68,6 +69,10 @@ class JsonFormatter(logging.Formatter):
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(record.created))
                   + f".{int(record.msecs):03d}Z",
             "level": record.levelname,
+            # Several log collectors — Cloud Logging and anything reading the Bunyan or
+            # GELF conventions — key alerting off a field called `severity` and ignore
+            # `level`. Emitting both costs nine characters a line.
+            "severity": record.levelname,
             "logger": record.name,
             "msg": record.getMessage(),
             "request_id": REQUEST_ID.get(),
@@ -80,7 +85,12 @@ class JsonFormatter(logging.Formatter):
 
 
 def _configure_logging() -> logging.Logger:
-    handler = logging.StreamHandler()
+    # stdout, not the default stderr. Measured, not preferred: the first deployment sent
+    # every line to stderr, and Vertex files a prediction container's stderr as severity
+    # ERROR — so a healthy endpoint reported ~360 errors an hour from its readiness probe
+    # alone, and any alert on error rate was worthless before Lab 4 began. The same
+    # convention holds on the other two platforms: stdout is INFO, stderr is an error.
+    handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(JsonFormatter())
     root = logging.getLogger()
     root.handlers = [handler]
@@ -160,6 +170,29 @@ def _load_from_registry(name: str, version: str) -> tuple[Any, dict[str, Any]]:
     }
 
 
+def _load_from_uri(uri: str) -> tuple[Any, dict[str, Any]]:
+    """Load the artifact the platform handed this container.
+
+    Every managed endpoint gives the container its model rather than making it ask the
+    registry: SageMaker unpacks it to a local directory, Azure ML sets one, Vertex passes
+    a storage URI. The provider env var names live in the serving shim under cloudlayer/;
+    by the time it reaches here it is just a URI, local or remote, and MLflow reads both.
+
+    This is still "by version": the endpoint deploys one registered version, and the
+    version it is serving arrives as MODEL_VERSION alongside the artifact.
+    """
+    import mlflow.sklearn
+
+    os.environ.setdefault("MLFLOW_DISABLE_AGENT_HINT", "1")
+    os.environ.setdefault("MLFLOW_ENABLE_ARTIFACTS_PROGRESS_BAR", "false")
+    return mlflow.sklearn.load_model(uri), {
+        "source": "platform",
+        "version": STATE.requested,
+        "artifact_uri": uri,
+        "aliases": [],
+    }
+
+
 def _load_from_path(path_str: str) -> tuple[Any, dict[str, Any]]:
     """Development and CI only. A submitted Lab 3 loads a registered version."""
     from pathlib import Path
@@ -178,12 +211,21 @@ def _load_from_path(path_str: str) -> tuple[Any, dict[str, Any]]:
 
 
 def _load_model() -> tuple[Any, dict[str, Any]]:
-    """Choose the source explicitly: MODEL_PATH means development, everything else means
-    the registry. An implicit fallback from a failed registry lookup to a stale local file
-    is how a service ends up serving a model nobody registered."""
+    """Choose the source explicitly, in this order:
+
+        MODEL_PATH   a local file             — development and CI
+        MODEL_URI    an artifact handed over  — a managed endpoint, through the shim
+        registry     name + version           — a laptop or a VM asking the registry itself
+
+    Explicit rather than fallback: silently dropping from a failed registry lookup to a
+    stale local file is how a service ends up serving a model nobody registered."""
     local = os.environ.get("MODEL_PATH")
     if local:
         return _load_from_path(local)
+
+    supplied = os.environ.get("MODEL_URI")
+    if supplied:
+        return _load_from_uri(supplied)
 
     from src import config
 
@@ -193,7 +235,8 @@ def _load_model() -> tuple[Any, dict[str, Any]]:
     if not (name and version):
         raise RuntimeError(
             "No model source. Set MODEL_VERSION (a version id or an alias) with "
-            "MODEL_REGISTRY_NAME, or set MODEL_PATH for local development."
+            "MODEL_REGISTRY_NAME, or MODEL_URI for an artifact the platform supplies, "
+            "or MODEL_PATH for local development."
         )
     return _load_from_registry(name, version)
 

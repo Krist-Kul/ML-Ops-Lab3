@@ -1,0 +1,38 @@
+{
+  "endpoint": "itcs355-6688053-endpoint",
+  "source_version": "1",
+  "results": {
+    "routine": {
+      "probability": 0.02787778522588296,
+      "model_version_in_body": "1",
+      "model_version_id": "3",
+      "deployed_model_id": "6116022434387722240",
+      "latency_ms": 450.99,
+      "local_probability": 0.02787778522588297,
+      "matches_local": true
+    },
+    "hot-and-overdue": {
+      "probability": 0.7232529771331193,
+      "model_version_in_body": "1",
+      "model_version_id": "3",
+      "deployed_model_id": "6116022434387722240",
+      "latency_ms": 561.78,
+      "local_probability": 0.7232529771331193,
+      "matches_local": true
+    },
+    "upper-bound": {
+      "probability": 0.727416609516757,
+      "model_version_in_body": "1",
+      "model_version_id": "3",
+      "deployed_model_id": "6116022434387722240",
+      "latency_ms": 506.03,
+      "local_probability": 0.7274166095167568,
+      "matches_local": true
+    },
+    "reject": {
+      "refused": true,
+      "error": "400 {\"error\":\"validation_error\",\"detail\":[{\"field\":\"instances.0.load_pct\",\"message\":\"Input should be less than or equal to 100\",\"type\":\"less_than_equal\",\"receiv"
+    }
+  },
+  "failures": []
+}

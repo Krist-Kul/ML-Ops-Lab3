@@ -250,9 +250,49 @@ uvicorn's own included. Two libraries had to be silenced to keep that true
 cannot parse takes the whole batch with it.
 
 Evidence, decisions, and the cold-start and latency figures that Task 3 starts from:
-`reports/lab3-service.md`. Tasks 2–5 (deploy, load test, canary and rollback, cost per 1,000)
-are not done yet; `service/Dockerfile.serve` carries the two `TODO(Lab 3, Task 2)` markers that
-say what the endpoint still has to decide.
+`reports/lab3-service.md`.
+
+### Task 2 — deployed
+
+```bash
+make deploy              # push the serving image, register a serving version, deploy it
+make smoke               # three known payloads, checked against the registry
+make endpoint-status     # what is attached, its traffic share, what it costs per hour
+make teardown            # delete it
+```
+
+`itcs355-6688053-endpoint` serves registry version **3** on `n1-standard-2`. Version 3 is
+version 1's *bytes* — the same artifact object, not a retrain — registered again with the
+serving image as its container, because a Vertex version carries the container that serves it
+and version 1 names the training image. Lineage is copied across unchanged: a different web
+server in front of the model did not change the commit that produced it.
+
+Every provider-shaped part sits in `cloudlayer/`: `gcp_serving.py` translates Vertex's
+`{"instances": […]}` envelope and its `AIP_STORAGE_URI` into the neutral `MODEL_URI`, and
+`adapter.serving_spec()` declares the routes, port and command. `service/app.py` is untouched
+by any of it, and the image's default `CMD` still runs the neutral app. The one provider
+dependency in the image is a storage client, and only because Vertex hands the container a
+`gs://` URI where SageMaker and Azure ML hand it a local directory.
+
+`make smoke` scores three known payloads and compares each against the same version loaded
+locally from the registry — all three match exactly — then sends a row that must be refused,
+and it is, with the service's own 422 body. Health is readiness: the Model resource declares
+`/ready`, and Vertex polls it about 360 times an hour.
+
+Two findings the deployment produced and local testing could not. Every log line arrived in
+Cloud Logging as **ERROR**, because the handler wrote to stderr and the platform reads a
+prediction container's stderr as errors — a healthy endpoint reporting 360 errors an hour from
+its own health checks. Now on stdout, with a `severity` field. And a deployment at **0% traffic
+still bills**: after the second deploy both versions held replicas at 10.18 THB/h until the old
+one was undeployed. Moving traffic is not releasing machines, which is the bill waiting at the
+end of Task 4.
+
+**Cost: 5.09 THB/h, 122 THB/day** — verified against the Cloud Billing Catalog, now in
+`src/costs.py` as `SERVING_PRICE_TABLE`. A prediction vCPU-hour is 13% dearer than the training
+vCPU-hour for the same machine, and E2 is 30% cheaper than N1. With 149 THB of budget left,
+this endpoint spends it in 29 hours. Full write-up: `reports/lab3-deploy.md`.
+
+Tasks 3–5 (load test, canary and rollback, cost per 1,000) are not done yet.
 
 ---
 

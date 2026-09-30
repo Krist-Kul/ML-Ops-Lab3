@@ -50,6 +50,53 @@ SPOT_FACTORS: dict[str, dict[str, float]] = {
         "n1-standard-4+t4": 0.37,
     },
 }
+# --- Lab 3: serving ----------------------------------------------------------
+# A prediction hour is NOT a training hour for the same machine, and assuming it is
+# understates a serving bill. Verified 2026-09-30 against the Cloud Billing Catalog API
+# (service C7E2-9256-1C43, Vertex AI) for asia-southeast1, at the same 33.355 THB/USD used
+# in reports/lab2-prices.md:
+#
+#   N1 prediction vCPU-hour  0.045000 + 0.005870 management = 0.050870 USD
+#   N1 prediction GiB-hour   0.006000 + 0.000783 management = 0.006783 USD
+#   E2 prediction vCPU-hour  0.030945 + 0.004036 management = 0.034981 USD
+#   E2 prediction GiB-hour   0.004146 + 0.000541 management = 0.004687 USD
+#
+# The N1 prediction core SKU (0.045000) is a different, dearer SKU from the Compute Engine
+# core the training table is built on (0.038999): serving the same machine type costs about
+# 13% more per vCPU-hour than training on it. E2 is ~30% cheaper than N1 for the same shape.
+#
+# These are per REPLICA-hour, and they are charged whether or not anything calls the
+# endpoint. That is the difference between this table and PRICE_TABLE: a training job that
+# finishes stops costing money, and an endpoint does not.
+SERVING_PRICE_TABLE: dict[str, dict[str, float]] = {
+    "local": {"local": 0.0},
+    "gcp": {
+        "n1-standard-2": 5.09,   # 2 vCPU, 7.5 GiB -> 0.152613 USD/h
+        "n1-standard-4": 10.18,  # 4 vCPU, 15 GiB  -> 0.305225 USD/h
+        "e2-standard-2": 3.58,   # 2 vCPU, 8 GiB   -> 0.107458 USD/h
+        "e2-standard-4": 7.17,   # 4 vCPU, 16 GiB  -> 0.214916 USD/h
+    },
+    # TODO(Lab 3): aws and azure serving rates are unverified. Add them when you deploy there.
+}
+
+
+def serving_hourly_rate(provider: str, instance: str, replicas: int = 1) -> float:
+    """THB per hour for `replicas` replicas of `instance`, idle or busy.
+
+    Deliberately separate from `hourly_rate`: passing a serving instance to the training
+    table would silently return a training price, and the two differ by more than rounding.
+    """
+    table = SERVING_PRICE_TABLE.get(provider.lower())
+    if table is None:
+        raise KeyError(f"No serving price table for {provider!r}. Add it to src/costs.py.")
+    if instance not in table:
+        raise KeyError(
+            f"No serving rate for {instance!r} on {provider}. Known: {sorted(table)}. "
+            "Verify the rate for the machine you deployed — do not reuse a training rate."
+        )
+    return table[instance] * replicas
+
+
 DEFAULT_UTILISATIONS = (0.05, 0.25, 0.80)
 
 

@@ -8,7 +8,7 @@ aiohappyeyeballs==2.7.1 \
     --hash=sha256:065665c041c42a5938ed220bdcd7230f22527fbec085e1853d2402c8a3615d9d \
     --hash=sha256:9243213661e29250eb41368e5daa826fc017156c3b8a11440826b2e3ed376472
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   aiohttp
 aiohttp==3.14.3 \
     --hash=sha256:03cd2bde3d7f085b64e549c985f4bb928cad7e8ecf5323bfca320db548d81b39 \
@@ -131,63 +131,63 @@ aiohttp==3.14.3 \
     --hash=sha256:fa9467a8113aa69d3d7c55a70ef0b7c636010a40993f3df9d9d0d73b3eb7ef24 \
     --hash=sha256:fd51ebf9d3a00c074df4ede271023f4d2dba289bcc740b88191872716014e3c5
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow
 aiosignal==1.4.0 \
     --hash=sha256:053243f8b92b990551949e63930a839ff0cf0b0ebbe0597b0f3fb19e1a0fe82e \
     --hash=sha256:f47eecd9468083c2029cc99945502cb7708b082c232f9aca65da147157b251c7
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   aiohttp
 alembic==1.20.0 \
     --hash=sha256:77eb101048d95f982c0353e9233404889dcd7a6fc244c107836c0e2fc9cf7d9d \
     --hash=sha256:db505480647bc60386c5369402f4a57a506b7539c9e9ef5e270d45cbbe4939bf
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow
 annotated-doc==0.0.5 \
     --hash=sha256:117bac03a25ede5df5440e855b32d556049ca169ead221505badf432fed4b101 \
     --hash=sha256:c7e58ce09192557605d8bbd92836d7e1d520ac9580096042c0bfd197efacf1bb
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   fastapi
 annotated-types==0.8.0 \
     --hash=sha256:13b2beaad985e05e2d6407ee4c4f35590b11f8d693a258a561055cac8f64cab7 \
     --hash=sha256:f072f4d804ea359e4eaf198b1af7a8b0943881a87f31bb764f8bf219bb9419e0
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   pydantic
 anyio==4.15.1 \
     --hash=sha256:6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101 \
     --hash=sha256:9f28306018cbd6d329e64a36d58256edff76dd996fe423bc957326e578b82a94
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow-skinny
     #   starlette
 attrs==26.1.0 \
     --hash=sha256:c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309 \
     --hash=sha256:d03ceb89cb322a8fd706d4fb91940737b6642aa36998fe130a9bc96c985eff32
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   aiohttp
 blinker==1.9.0 \
     --hash=sha256:b4ce2265a7abece45e7cc896e98dbebe6cead56bcf805a3d23136d145f5445bf \
     --hash=sha256:ba0efaa9080b619ff2f3459d1d500c57bddea4a6b424b60a91141db6fd2f08bc
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   flask
 cachetools==7.1.8 \
     --hash=sha256:1221d547a0b24b7f26fa891d40d488b5258beab9aebd8ed68c729be3af849c43 \
     --hash=sha256:a81e3844acaa7355b6567f97bd67a94a14ec3a9bc2cbbdae45b9592cc036775b
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow-skinny
     #   mlflow-tracing
 certifi==2026.7.22 \
     --hash=sha256:62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775 \
     --hash=sha256:741e2c3b351ddf169a738da9f2c048608ff7f2c5cc02f1ebc6b118bb090d5d55
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   requests
 cffi==2.1.1 \
     --hash=sha256:046bfc24911b37851ee1b51aab8bffe713d89c68c6a057b09484ce9fd5f69b4e \
@@ -291,7 +291,7 @@ cffi==2.1.1 \
     --hash=sha256:fb92203a88b3d3053034db775110081c49d28be6551923805e039924093761e4 \
     --hash=sha256:fcd22650c908d7b7da162bbfaab594a1227a15d1643a98c68b122ac642fa2264
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   cryptography
 charset-normalizer==3.5.1 \
     --hash=sha256:00668ebb0609751758682eb0b5857e7c35b9f00e84dfdef062e103244ec94d45 \
@@ -467,13 +467,13 @@ charset-normalizer==3.5.1 \
     --hash=sha256:fd0a274c0e5f9a21565cd9d3dd749b61f96b7aa1e20a93aa1ba4029518f2e5c0 \
     --hash=sha256:fdb8a068947befafba9952162645dc2fecaeb400e64584829ed5e9b2fbe21a7f
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   requests
 click==8.5.0 \
     --hash=sha256:255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360 \
     --hash=sha256:ba0d2089de75ea0310e2dde03160e6ca10009947fb95a182f9b54021bb272e34
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   flask
     #   mlflow-skinny
     #   uvicorn
@@ -481,7 +481,7 @@ cloudpickle==3.1.2 \
     --hash=sha256:7fda9eb655c9c230dab534f1983763de5835249750e85fbcef43aaa30a9a2414 \
     --hash=sha256:9acb47f6afd73f60dc1df93bb801b472f05ff42fa6c84167d25cb206be1fbf4a
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow-skinny
 contourpy==1.3.3 \
     --hash=sha256:023b44101dfe49d7d53932be418477dba359649246075c996866106da069af69 \
@@ -557,7 +557,7 @@ contourpy==1.3.3 \
     --hash=sha256:fd914713266421b7536de2bfa8181aa8c699432b6763a0ea64195ebe28bff6a9 \
     --hash=sha256:fde6c716d51c04b1c25d0b90364d0be954624a0ee9d60e23e850e8d48353d07a
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   matplotlib
 cryptography==50.0.1 \
     --hash=sha256:01f41478cf33fc605a6a089cd56d28b45c6c0b45a1928b61797f2621a04bac71 \
@@ -607,47 +607,47 @@ cryptography==50.0.1 \
     --hash=sha256:fd3718b960d0b5dd213cdf03f3bcb7000e69dda0de8b956061947ff6bcff5558 \
     --hash=sha256:ff838d62ec1bfce4f9ba7fa16f4a7b554cd8d0c299e6be37502161a660c84eef
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   google-auth
     #   mlflow
 cycler==0.12.1 \
     --hash=sha256:85cef7cff222d8644161529808465972e51340599459b8ac3ccbac5a854e0d30 \
     --hash=sha256:88bb128f02ba341da8ef447245a9e138fae777f6a23943da4540077d3601eb1c
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   matplotlib
 databricks-sdk==0.138.0 \
     --hash=sha256:623a0aa26f88fa782444195adb4a6fc535c419eb20983f7239a8247aa3cd0cb2 \
     --hash=sha256:8e701e98e1e97a3cc9c8c57f476787079fa3fbd64f343a71d24b057c70f9f569
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow-skinny
     #   mlflow-tracing
 docker==7.2.0 \
     --hash=sha256:a3f45fdeb9165e2d25d9a1d02ddf3bc70fb572cf5ebbf9b58558c22caf29b71f \
     --hash=sha256:cebb93773d334f778e023a7ee352a8d6e13ab1bd3b863a4d4a59dec897df43ac
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow
 fastapi==0.141.1 \
     --hash=sha256:bfb91aa2d334c61cb35ba9a116fc123b3d3df31640b801cf57a7a78ec3f603b3 \
     --hash=sha256:e8822fc40db1e1858054d7a949a888695bc9bdce70139178e33bd2871a453ca1
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   -r requirements-serve.in
     #   mlflow-skinny
 flask==3.1.3 \
     --hash=sha256:0ef0e52b8a9cd932855379197dd8f94047b359ca0a78695144304cb45f87c9eb \
     --hash=sha256:f4bcbefc124291925f1a26446da31a5178f9483862233b23c0c96a20701f670c
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   flask-cors
     #   mlflow
 flask-cors==6.0.5 \
     --hash=sha256:30c5031552cd59f620ac0c8211dac45b345d3b2df310e7721879e4f46ef9c601 \
     --hash=sha256:68fcf75693e961f3af26683b23c4b9a8fb6b64de17d20d0c37b95e8de7ab2ed8
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow
 fonttools==4.65.0 \
     --hash=sha256:04f73dd01005752a6e75cf4a8dc6b70dc724d1d4bc34cc89522153f4a2f07680 \
@@ -717,7 +717,7 @@ fonttools==4.65.0 \
     --hash=sha256:fcf39949f56911348514b466714efa9118bec3d2be249e1c487263f7cda6edab \
     --hash=sha256:ffc918702661f1d74d2fbb2f5551036b64f6d2d743139e105289b694bcd16f54
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   matplotlib
 frozenlist==1.8.0 \
     --hash=sha256:0325024fe97f94c41c08872db482cf8ac4800d80e79222c6b0b7b162d5b13686 \
@@ -851,45 +851,105 @@ frozenlist==1.8.0 \
     --hash=sha256:fb30f9626572a76dfe4293c7194a09fb1fe93ba94c7d4f720dfae3b646b45027 \
     --hash=sha256:fe3c58d2f5db5fbd18c2987cba06d51b0529f52bc3a6cdc33d3f4eab725104bd
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   aiohttp
     #   aiosignal
 gitdb==4.0.12 \
     --hash=sha256:5ef71f855d191a3326fcfbc0d5da835f26b13fbcba60c32c21091c349ffdb571 \
     --hash=sha256:67073e15955400952c6565cc3e707c554a4eea2e428946f7a4c162fab9bd9bcf
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   gitpython
 gitpython==3.1.62 \
     --hash=sha256:1791de66309bc0c7cfca40bf8d2e3de7ca091cbf94e6051be1ad0722c61062af \
     --hash=sha256:7002251225e10e29d2e1f49e6532613fe5d5d9f0b6f1f02997a52b38fe56899e
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow-skinny
+google-api-core==2.40.0 \
+    --hash=sha256:4b9e0a80024c269ae173136d5439f4ed284651d6e5e2773ba5c694f481f9c0f4 \
+    --hash=sha256:ebee7d1b138b5362beecec260e6e8988ac97346562c7382ccb6f0ad8435c599f
+    # via
+    #   google-cloud-core
+    #   google-cloud-storage
 google-auth==2.58.0 \
     --hash=sha256:55e30cf15e737de92c5323d78cda8a83fcd57e7ffbaf900c4600039fd60a80fd \
     --hash=sha256:8a9c4645bb4c8e91668fb1934b95ae6a8687084232753639220ba9bf04a1610d
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   databricks-sdk
+    #   google-api-core
+    #   google-cloud-core
+    #   google-cloud-storage
+google-cloud-core==2.8.0 \
+    --hash=sha256:365f8e4518ae81c8101b8dea5fc1c32a960badedb8b511f19db2843cbbd285d2 \
+    --hash=sha256:e235b0952f7ffe7b9c71a4cf96b506d9cfb557e22557c412f0df9b7068b5d007
+    # via google-cloud-storage
+google-cloud-storage==3.13.1 \
+    --hash=sha256:98208de6c21e85cecd3eb44551894efff33d98365500e178867d4305854a770a \
+    --hash=sha256:a80bf8cac2794808aa61c50c5f769ecbbe2d10331bacd0d69d30e59b14b346b2
+    # via -r requirements-serve.in
+google-crc32c==1.9.0 \
+    --hash=sha256:0568b17ed90ac596f29400d99e243fd0cc6276766183def888d1bf8d1dc13827 \
+    --hash=sha256:0abe7e202c25909869c35672ab0f2fe748a7acf276eb78577332a7c38999740f \
+    --hash=sha256:13179f7e3282617923e957b8e54b8f9c3968030f48640a9f47fd7c5c38c4a215 \
+    --hash=sha256:16865b477d7941712cb0e0aad8ad4815e984fb5fc16d3fdaef7d986e26e53c95 \
+    --hash=sha256:265233aff33d835f5b909584fe36ab29647b598c271b661a300001099109e53e \
+    --hash=sha256:280f3a3e47af0eeba3a3e5aa7d311af77001812b8df80fb8beafcd0b40eaf7f1 \
+    --hash=sha256:3abb18297d9ef0ab120531838be0e6d68c9fa876570e11c229c48f2edac23ce7 \
+    --hash=sha256:43a2dc26f9be213fbe0b4fc4a1088c5d45cbfcb3247420ccc820f0fc3edeea86 \
+    --hash=sha256:4488f1553a9ab7e86cdedc833374a7e904031803b995dc0bd0be48c271fa6556 \
+    --hash=sha256:457d0d9a4718fd52b1494eac5c200ad25beeadbdc91843d550a003910838589f \
+    --hash=sha256:51cb4e23a38ad4f495f35f87c233ca3ea6b9c4559e7ac383cdef786fab0f7977 \
+    --hash=sha256:53fdafef58e230d0c946ab5f8446d123d9f548230a73b29c8b41c9546f268bc1 \
+    --hash=sha256:56610f548f1b35c9568b9d1de30423480f505dae4991556072d5802820ff35c4 \
+    --hash=sha256:5695c8b9327e040b2aba12c6659b0acb5995314ef0af0192da66e662e011103b \
+    --hash=sha256:6a3b2c8a343c570ed8100a7627c20badfd92c6caa2067093a86be45af27f5b1b \
+    --hash=sha256:7b8c84c3d159ab6817fe3f74e6e6cef099c3f95dcec3abc0d8afb1404642efbe \
+    --hash=sha256:8535e75dfead304f30e9122b9ea2c0a570dbaa52c176a0a591540c7914c1e46d \
+    --hash=sha256:8583ec21d56b565d68ab2963cc7e21b3b271247c29b04286068255ef65f221bd \
+    --hash=sha256:86764b99e7a607830d93cb5b75e0ec3ff6cb06d3c274624418473cee701900d4 \
+    --hash=sha256:8b91f41645b15a720357183fa5716682ada441873e3c462c15f9714be36f146b \
+    --hash=sha256:af73200fa9791ccd380f3598235dba8d82b8af0905df045b3dc60b59836e8ddd \
+    --hash=sha256:ccfe40021fd6afe23361175cf7551e3cef5fd34dc1ebe319f14993a83579e0eb \
+    --hash=sha256:dee799544cae42a42b17a88e38b59cf2c271051dc001da2117a8ff240ffa0548 \
+    --hash=sha256:e6b529a6a287104ec79d281c411685231200ce954a29c28ab8e5093cb6e130fb \
+    --hash=sha256:e6e8be8a94436079cb5340f6d495d9d7ba30124d8b952703994c739c7c06e236 \
+    --hash=sha256:f1dc17d987ddcc5eba12a7ce48f0eb93141dea236b170c1101151396edf2f0cf \
+    --hash=sha256:f2b64641bca27497b986b9d87883014035aa904cb4fa333407c6752b3afee9ba \
+    --hash=sha256:f894a2877650b56201d26a012a257b76d54a68834dc3913a93830ca8a047b075 \
+    --hash=sha256:f97c3806dcea41c29c04965347b0e12481561b75e0045dc7a4f69d75dec5d9b1 \
+    --hash=sha256:fb63a8d7fa2e95dcff1ca16af2f4d88b526fa5ff72d1696285884ac2d49b6963 \
+    --hash=sha256:fbef61a3794e011c65fb4396a196cf123a7f474fe5a443db8e5dd7d751b9e6d4
+    # via
+    #   google-cloud-storage
+    #   google-resumable-media
+google-resumable-media==2.11.0 \
+    --hash=sha256:f43d15e6a7f818f762eaead0f369c551f8275a4179c9d6225d0d259f49b87b5d \
+    --hash=sha256:febd83686752799661b4de575f0b993c5c25c349a5362556fc4d7be164056a37
+    # via google-cloud-storage
+googleapis-common-protos==1.75.5 \
+    --hash=sha256:c7a866fc34ed29a3b10af627a4b9b1dc2433313ca6e959f0ae4feb132047ed72 \
+    --hash=sha256:d7285525c23039db98f2463e6d5a4f9b958b94d497f03a844ece3259c4e72d5d
+    # via google-api-core
 graphene==3.4.3 \
     --hash=sha256:2a3786948ce75fe7e078443d37f609cbe5bb36ad8d6b828740ad3b95ed1a0aaa \
     --hash=sha256:820db6289754c181007a150db1f7fff544b94142b556d12e3ebc777a7bf36c71
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow
 graphql-core==3.2.12 \
     --hash=sha256:3d8f104532070485e13caa4092c1e71cda2ba6cffd96e98f285111ee10ed1e51 \
     --hash=sha256:4579094d5fc8a1a59555a9b18e51b320779d9bbc63e2302c519af0c4919d9543
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   graphene
     #   graphql-relay
 graphql-relay==3.2.0 \
     --hash=sha256:1ff1c51298356e481a0be009ccdff249832ce53f30559c1338f22a0e0d17250c \
     --hash=sha256:c9b22bd28b170ba1fe674c74384a8ff30a76c8e26f88ac3aa1584dd3179953e5
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   graphene
 greenlet==3.5.5 \
     --hash=sha256:03115c2e0a371999bf8ae616aa8d653f96641d4705c457aebaa187276e9f7537 \
@@ -972,31 +1032,31 @@ greenlet==3.5.5 \
     --hash=sha256:f7278591501941bb2456af102bb9cd59aab48c6cfd6e2dd68fa1290bb0c49a42 \
     --hash=sha256:fef01bd457f11fc158b130ca0027a3c365693280e8e231b65bdaf57999f39f5b
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   sqlalchemy
 gunicorn==26.2.0 \
     --hash=sha256:62b864895d9ebff0b2f9867ba04fe811c93121596540830c9c916d0769668447 \
     --hash=sha256:bd249d0b3f7972f7432f0a6b6ff3b3ee2d129f70cd1ff6c09a9dd9e29a2b88e3
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow
 h11==0.16.0 \
     --hash=sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1 \
     --hash=sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   uvicorn
 huey==3.4.0 \
     --hash=sha256:ac9b02e741f13da4092ea19bcaafc73669e97d3153914d2fed2868df144f6dfa \
     --hash=sha256:d0580762397744026f83baae5f2b97a62474a62b8565ac75bbafefe72f9c784f
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow
 idna==3.19 \
     --hash=sha256:5e0811a4383b21dc5838069f801c4fb62113b7447663d2530d2bd6e77b49bf15 \
     --hash=sha256:815e7be7a7806d54abb586dc943addc79e8b2ee16915059658cbeff4b1b43bf4
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   anyio
     #   requests
     #   yarl
@@ -1004,25 +1064,25 @@ importlib-metadata==9.0.1 \
     --hash=sha256:ab830580bc0ef3db61ce8fae716389e5462b67e033018bab6d8f80ef17172f99 \
     --hash=sha256:bba5600596a7e21f3eef53281cf28d6a5195634d2f2b78ff9501a3272c6eaab0
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow-skinny
 itsdangerous==2.2.0 \
     --hash=sha256:c6242fc49e35958c8b15141343aa660db5fc54d4f13a1db01a3f5891b98700ef \
     --hash=sha256:e0050c0b7da1eea53ffaf149c0cfbb5c6e2e2b69c4bef22c81fa6eb73e5f6173
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   flask
 jinja2==3.1.6 \
     --hash=sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d \
     --hash=sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   flask
 joblib==1.4.2 \
     --hash=sha256:06d478d5674cbc267e7496a410ee875abd68e4340feff4490bcb7afb88060ae6 \
     --hash=sha256:2382c5816b2636fbd20a09e0f4e9dad4736765fdfb7dca582943b9c1366b3f0e
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   -r requirements-serve.in
     #   scikit-learn
 kiwisolver==1.5.1 \
@@ -1168,13 +1228,13 @@ kiwisolver==1.5.1 \
     --hash=sha256:fc271a6f0a2126958f4090e5507b9da5848927dae331f8f763bd4aa642b3d2cd \
     --hash=sha256:febcce10f2bcdbb80b4ea919238a6a4ac13dbc4c7cadbe8d5d75c3682f8b5404
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   matplotlib
 mako==1.4.1 \
     --hash=sha256:a359d9a94a541213958742b2698d0a7757bb83551767bc468a74b9905aba9617 \
     --hash=sha256:d7904710b662996425a21627710c4777c45053146942cf8a7aebf757c92b8c27
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   alembic
 markupsafe==3.0.3 \
     --hash=sha256:0303439a41979d9e74d18ff5e2dd8c43ed6c6001fd40e5bf2e43f7bd9bbc523f \
@@ -1267,7 +1327,7 @@ markupsafe==3.0.3 \
     --hash=sha256:f9e130248f4462aaa8e2552d547f36ddadbeaa573879158d721bbd33dfe4743a \
     --hash=sha256:fed51ac40f757d41b7c48425901843666a6677e3e8eb0abcff09e4ba6e664f50
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   flask
     #   jinja2
     #   mako
@@ -1327,25 +1387,25 @@ matplotlib==3.11.2 \
     --hash=sha256:f2ac30cf5eb5dff1b584627ae0b0e1186551a4f69ae3c75073911da497a29170 \
     --hash=sha256:fea03cf56568cc1cba08b470be6a0559e71c3a5b688d54b7179bb35ba23d0821
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow
 mlflow==3.16.0 \
     --hash=sha256:c4ac5e8634aacad1a3d7d5a1a31be9279593ebd48b84272843682db11970cf71 \
     --hash=sha256:e39d3e4dd13aab864f821a3c3d871eb5e2db3d4557e60db8592f23cbafa1e830
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   -r requirements-serve.in
 mlflow-skinny==3.16.0 \
     --hash=sha256:f02330c33f231fc19312bc35c64206e1504a63838fbabdac4b1882d6416bd2b8 \
     --hash=sha256:ff4e676eb469d769efc27036f9cb804e0709c125a2645a3902743d917b3771ae
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow
 mlflow-tracing==3.16.0 \
     --hash=sha256:2b7c8ec19233868b965b141dd3c20f92e5bbdcdaf90f41ae1d2e6b6d1c04e785 \
     --hash=sha256:383b920d5421f8f596a73bbc698f065ac62c4277146d2bdb2352096ec528bcb2
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow
 multidict==6.8.0 \
     --hash=sha256:003a3bddb32915c3f67096ea41d24e53edf710edb65a1f5d0c70ab40b0e4d20b \
@@ -1520,7 +1580,7 @@ multidict==6.8.0 \
     --hash=sha256:fc5460940f50dff00731b4132366840ba9685286ea88ea104b661899084f3fea \
     --hash=sha256:fd789a294d8e098528be29b2669b83005ce569339f8cef167fc0274c3115c34c
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   aiohttp
     #   yarl
 numpy==2.4.4 \
@@ -1597,7 +1657,7 @@ numpy==2.4.4 \
     --hash=sha256:fbc356aae7adf9e6336d336b9c8111d390a05df88f1805573ebb0807bd06fd1d \
     --hash=sha256:fcfe2045fd2e8f3cb0ce9d4ba6dba6333b8fa05bb8a4939c908cd43322d14c7e
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   -r requirements-serve.in
     #   contourpy
     #   matplotlib
@@ -1610,7 +1670,8 @@ opentelemetry-api==1.44.0 \
     --hash=sha256:67647e5e9566edcf421166fdf022b3537f818635daa852b289e34604dc6fb33a \
     --hash=sha256:94b98c893a91b88657eaac1e3ba89618cdb85be6918196705354f34728b2cdef
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
+    #   google-api-core
     #   mlflow-skinny
     #   mlflow-tracing
     #   opentelemetry-sdk
@@ -1619,27 +1680,27 @@ opentelemetry-proto==1.44.0 \
     --hash=sha256:898b155a0e1557afd867478fb6158e8122a46329ca0bb8dc53cc55e98f017f56 \
     --hash=sha256:c547a79c2f8c0c515d31509154682e5921c7cfd5ca67b70e1f9266e2c3e103f3
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow-skinny
     #   mlflow-tracing
 opentelemetry-sdk==1.44.0 \
     --hash=sha256:cebe7f65dc12f26ead75c6064de12fd2a9052e5060c0272d402cfa203aae123b \
     --hash=sha256:df081c4c6bcfdb1211e3e86140376792643128a25f8d72d1d27675936e7e96ad
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow-skinny
     #   mlflow-tracing
 opentelemetry-semantic-conventions==0.65b0 \
     --hash=sha256:1cacde7b0ad306f84c5ef08c3dbe1bbaf20165bba6f8bff43b670e555a086bcb \
     --hash=sha256:f9b2b81e9d5b64f11bc952075e7e9c7fb0aab075c7fd1c46d597f1b919852d60
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   opentelemetry-sdk
 packaging==26.3 \
     --hash=sha256:94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79 \
     --hash=sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   matplotlib
     #   mlflow-skinny
     #   mlflow-tracing
@@ -1694,7 +1755,7 @@ pandas==3.0.2 \
     --hash=sha256:f4753e73e34c8d83221ba58f232433fca2748be8b18dbca02d242ed153945043 \
     --hash=sha256:f8d68083e49e16b84734eb1a4dcae4259a75c90fb6e2251ab9a00b61120c06ab
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   -r requirements-serve.in
     #   mlflow
 pillow==12.3.0 \
@@ -1786,13 +1847,13 @@ pillow==12.3.0 \
     --hash=sha256:fe3cca2e4e8a592be0f269a1ca4835c25199d9f3ce815c8491048f785b0a0198 \
     --hash=sha256:ffd0c5368496f41b0944be820fcb7a838aa6e623d250b01acf2643939c3f99d7
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   matplotlib
 prettytable==3.18.0 \
     --hash=sha256:439217116152244369caf3d9f1caf2f9fe29b03bd79e88d2928c8e718c95d680 \
     --hash=sha256:b3346e0e6f79180833aebaac088ae926340586cf6d7d991b9eb125b65f72313a
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   skops
 propcache==0.5.2 \
     --hash=sha256:01c4fc7480cd0598bb4b57022df55b9ca296da7fc5a8760bd8451a7e63a7d427 \
@@ -1917,9 +1978,13 @@ propcache==0.5.2 \
     --hash=sha256:fc88b26f08d634f7bc819a7852e5214f5802641ab8d9fd5326892292eee1993e \
     --hash=sha256:fe67a3d11cd9b4efabfa45c3d00ffba2b26811442a73a581a94b67c2b5faccf6
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   aiohttp
     #   yarl
+proto-plus==1.29.0 \
+    --hash=sha256:8acd070469a7aaf43f440b022ef9757c8cac1a9f866e933f59ae98669ddc6c8b \
+    --hash=sha256:cfb4e62ad7e13dd18f346cabbda00cab39930d36a05791fd81ddb074d6ee884f
+    # via google-api-core
 protobuf==6.33.6 \
     --hash=sha256:0cd27b587afca21b7cfa59a74dcbd48a50f0a6400cfb59391340ad729d91d326 \
     --hash=sha256:77179e006c476e69bf8e8ce866640091ec42e1beb80b213c3900006ecfba6901 \
@@ -1932,11 +1997,14 @@ protobuf==6.33.6 \
     --hash=sha256:e9db7e292e0ab79dd108d7f1a94fe31601ce1ee3f7b79e0692043423020b0593 \
     --hash=sha256:f443a394af5ed23672bc6c486be138628fbe5c651ccbc536873d7da23d1868cf
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   databricks-sdk
+    #   google-api-core
+    #   googleapis-common-protos
     #   mlflow-skinny
     #   mlflow-tracing
     #   opentelemetry-proto
+    #   proto-plus
 pyarrow==25.0.1 \
     --hash=sha256:0b1edbb2f385a6a65e9711b62ba86ac54a7816a3f8d17bb3e8a5929d65fb2485 \
     --hash=sha256:0b726ad7e7b669be982b0c71c07fe4b037d654354130da79a7902a669e93a66b \
@@ -1982,31 +2050,31 @@ pyarrow==25.0.1 \
     --hash=sha256:f3831aaa25c67a99f99dc8b05873cb9d64560390372e2aa197ce9dd4a3f06a44 \
     --hash=sha256:f729cfdbd36fd99d543b67a914d2de044c84ebe45be8b34902b299b608c15c8f
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow
 pyasn1==0.6.4 \
     --hash=sha256:9c447d8431c947fe4c8febc4ed9e760bc29011a5b01e5c74b67025bd9fb8ce81 \
     --hash=sha256:deda9277cfd454080ec40b207fb6df82206a3a2688735233cdcd8d3d565f088b
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   pyasn1-modules
 pyasn1-modules==0.4.2 \
     --hash=sha256:29253a9207ce32b64c3ac6600edc75368f98473906e8fd1043bd6b5b1de2c14a \
     --hash=sha256:677091de870a80aae844b1ca6134f54652fa2c8c5a52aa396440ac3106e941e6
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   google-auth
 pycparser==3.0 \
     --hash=sha256:600f49d217304a5902ac3c37e1281c9fe94e4d0489de643a9504c5cdfdfc6b29 \
     --hash=sha256:b727414169a36b7d524c1c3e31839a521725078d7b2ff038656844266160a992
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   cffi
 pydantic==2.13.5 \
     --hash=sha256:346a034f080da3755d8e9cb5e00e8b07de1d39e4f6e2c87d8ab7cafa0b269a73 \
     --hash=sha256:51a9c5f7b2f8e636f04c6cada605d9b6a3bf1348fdf945a3d8869b19bba0ee08
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   -r requirements-serve.in
     #   fastapi
     #   mlflow-skinny
@@ -2133,19 +2201,19 @@ pydantic-core==2.46.5 \
     --hash=sha256:fc8515076c11f3cfdf4fb142dcca0fe384b1230a3b5415458ac84f3e0903ec13 \
     --hash=sha256:ff218293c9c806138dca139765e3b067621be52bcd93cdc14c7711be7ddc90a9
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   pydantic
 pyparsing==3.3.2 \
     --hash=sha256:850ba148bd908d7e2411587e247a1e4f0327839c40e2e5e6d05a007ecc69911d \
     --hash=sha256:c777f4d763f140633dcb6d8a3eda953bf7a214dc4eff598413c070bcdc117cbc
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   matplotlib
 python-dateutil==2.9.0.post0 \
     --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
     --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   graphene
     #   matplotlib
     #   pandas
@@ -2153,7 +2221,7 @@ python-dotenv==1.2.3 \
     --hash=sha256:904552145e8bfed22162c09dab1c2b9b54fefa7b23ba780f4f26ca0316b0f0d9 \
     --hash=sha256:a20a594dabeaa385725aa239d5244871c143ecb356add8a20fcf23773a6c3a35
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow-skinny
 pyyaml==6.0.3 \
     --hash=sha256:00c4bdeba853cc34e7dd471f16b4114f4162dc03e6b7afcc2128711f0eca823c \
@@ -2230,15 +2298,17 @@ pyyaml==6.0.3 \
     --hash=sha256:fa160448684b4e94d80416c0fa4aac48967a969efe22931448d853ada8baf926 \
     --hash=sha256:fc09d0aa354569bc501d4e787133afc08552722d3ab34836a80547331bb5d4a0
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow-skinny
 requests==2.34.2 \
     --hash=sha256:2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0 \
     --hash=sha256:f288924cae4e29463698d6d60bc6a4da69c89185ad1e0bcc4104f584e960b9ed
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   databricks-sdk
     #   docker
+    #   google-api-core
+    #   google-cloud-storage
     #   mlflow-skinny
 scikit-learn==1.8.0 \
     --hash=sha256:00d6f1d66fbcf4eba6e356e1420d33cc06c70a45bb1363cd6f6a8e4ebbbdece2 \
@@ -2279,7 +2349,7 @@ scikit-learn==1.8.0 \
     --hash=sha256:fb65db5d7531bccf3a4f6bec3462223bea71384e2cda41da0f10b7c292b9e7c4 \
     --hash=sha256:fe1c011a640a9f0791146011dfd3c7d9669785f9fed2b2a5f9e207536cf5c2fd
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   -r requirements-serve.in
     #   mlflow
     #   skops
@@ -2346,7 +2416,7 @@ scipy==1.17.1 \
     --hash=sha256:f8885db0bc2bffa59d5c1b72fad7a6a92d3e80e7257f967dd81abb553a90d293 \
     --hash=sha256:fcb310ddb270a06114bb64bbe53c94926b943f5b7f0842194d585c65eb4edd76
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow
     #   scikit-learn
     #   skops
@@ -2354,19 +2424,19 @@ six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
     --hash=sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   python-dateutil
 skops==0.14.0 \
     --hash=sha256:60a5db78a9db46ccee2139a0ba13ab5afb1c96f4749b382e75a371291bbe3e36 \
     --hash=sha256:6c8c0e047f691a3a582c3258943eecafcbfd79c8c7eef66260f3703e363254f0
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow
 smmap==5.0.3 \
     --hash=sha256:4d9debb8b99007ae47165abc08670bd74cb74b5227dda7f643eccc4e9eb5642c \
     --hash=sha256:c106e05d5a61449cf6ba9a1e650227ecfb141590d2a98412103ff35d89fc7b2f
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   gitdb
 sqlalchemy==2.0.52 \
     --hash=sha256:11560064cc4696e772298b6221ede59e646386d9f2a85d549365473b972f7850 \
@@ -2422,33 +2492,33 @@ sqlalchemy==2.0.52 \
     --hash=sha256:f2b09029ef6f260409eefa5dc2b8276f6c3d7b892bfb50d50e8f852257d4a6b4 \
     --hash=sha256:f4d4f7afc682961dc567db70e00a7b5bd81ccd3743c46199b0257f0744902dde
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   alembic
     #   mlflow
 sqlparse==0.6.0 \
     --hash=sha256:113c35c75365ab9cc9c7231d68c6428fb11c085fc8e9eb1ad659b7ddbf6cd2b9 \
     --hash=sha256:b861c0288ce2fa56209a9a6412d2e066ac664b3873b89c26c9d8415e8e32996f
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   mlflow-skinny
 starlette==1.6.0 \
     --hash=sha256:a86dd39d14bb45f85a3d18525215a9ef0cfd1f192ac793220e72598c90335f0c \
     --hash=sha256:d4e3ac5e546444960c710297a3c9fc3f7ebae1b7e963f3d36173b49da535be9b
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   fastapi
     #   mlflow-skinny
 threadpoolctl==3.6.0 \
     --hash=sha256:43a0b8fd5a2928500110039e43a5eed8480b918967083ea48dc3ab9f13c4a7fb \
     --hash=sha256:8ab8b4aa3491d812b623328249fab5302a68d2d71745c8a4c719a2fcaba9f44e
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   scikit-learn
 typing-extensions==4.16.0 \
     --hash=sha256:481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8 \
     --hash=sha256:dc983d19a509c94dba722ee6abd33940f7c05a89e243c47e907eb4db6f1a43e5
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   aiohttp
     #   aiosignal
     #   alembic
@@ -2468,14 +2538,14 @@ typing-inspection==0.4.4 \
     --hash=sha256:547274fa6b0a561ccf549cc9524b999a578e737d015d8709d021f9d0d13bea47 \
     --hash=sha256:65b8397ba37ccbce054456aaccddfc91e6e3083c92824df348d96ca832f3f147
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   fastapi
     #   pydantic
 urllib3==2.7.0 \
     --hash=sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c \
     --hash=sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   databricks-sdk
     #   docker
     #   requests
@@ -2483,20 +2553,20 @@ uvicorn==0.52.4 \
     --hash=sha256:73acfee47a0b133c5de13d219492d62d8a31e935f4fe6e41a232451a15379f86 \
     --hash=sha256:f86e41a149d7d05a9969337e3946a9c171c06a5d42680896daaba624aeac8da1
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   -r requirements-serve.in
     #   mlflow-skinny
 wcwidth==0.8.3 \
     --hash=sha256:d128512515fbf4612e0ff21fd6380399210318b7b54a9af59dff8454cf9730eb \
     --hash=sha256:d5b73dba6158a595ec9370350e7f2637bcac8d6c5e4fde34f30fcffb6103a5e4
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   prettytable
 werkzeug==3.1.8 \
     --hash=sha256:63a77fb8892bf28ebc3178683445222aa500e48ebad5ec77b0ad80f8726b1f50 \
     --hash=sha256:9bad61a4268dac112f1c5cd4630a56ede601b6ed420300677a869083d70a4c44
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   flask
     #   flask-cors
 yarl==1.24.5 \
@@ -2605,11 +2675,11 @@ yarl==1.24.5 \
     --hash=sha256:ff405d91509d88e8d44129cd87b18d70acd1f0c1aeabd7bc3c46792b1fe2acba \
     --hash=sha256:ffcd54362564dc1a30fb74d8b8a6e5a6b11ebd5e27266adc3b7427a21a6c9104
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   aiohttp
 zipp==4.1.0 \
     --hash=sha256:25ad4e16390cd314347dd8f1de67a2ac538ae658ed4ab9db16029c07c188e97f \
     --hash=sha256:4cb57381f544315db7688e976e922a2b18cdb513d21cc194eb42232ba2a3e602
     # via
-    #   -c .lab1-constraints.txt
+    #   -c constraints-lab1.txt
     #   importlib-metadata
