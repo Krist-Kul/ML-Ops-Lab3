@@ -1,0 +1,26 @@
+{
+  "endpoint": "projects/916002887960/locations/asia-southeast1/endpoints/4434156671983419392",
+  "endpoint_display_name": "itcs355-6688053-endpoint",
+  "deployed_model_id": "228480715275108352",
+  "serving_version": "3",
+  "source_version": "1",
+  "source_artifact_uri": "gs://itcs355-6688053/registry/itcs355-6688053/itcs355-register-20260921-014231/model",
+  "serving_image": null,
+  "instance": "n1-standard-4",
+  "min_replicas": 1,
+  "max_replicas": 1,
+  "spot": false,
+  "traffic": 100,
+  "deploy_seconds": 273.3,
+  "deployed_at": "2026-09-30T17:24:50Z",
+  "lineage": {
+    "data_version": "422cccb9136e8140",
+    "git_commit": "6173dd677264976917a708c4742f970727986392",
+    "image_digest": "asia-southeast1-docker.pkg.dev/itcs355-6688053/itcs355/itcs355-lab1@sha256:3e520841ebb7264256b2829cecfe3236a7152f32ff0a920f34c2c1d4924692b5",
+    "metric_test": "0.854311",
+    "metric_val": "0.840455",
+    "mlflow_run_id": "63f64ecfb35841deac2c22e41710e293",
+    "seed": "20260101",
+    "training_job_id": "4570562909159030784"
+  }
+}

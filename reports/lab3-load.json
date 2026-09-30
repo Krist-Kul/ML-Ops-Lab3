@@ -1,0 +1,608 @@
+{
+  "lab": 3,
+  "task": 3,
+  "measured_utc": "2026-09-30",
+  "target": {
+    "committed_in": "6d36bcd",
+    "committed_before_measurement": true,
+    "service_p95_ms": 50,
+    "service_p99_ms": 120,
+    "error_rate": 0.005,
+    "end_to_end_in_region_p95_ms": 200,
+    "cold_start_s": 60,
+    "subject": "one container, 2 vCPU, 1 replica, digest-pinned serving image, client on the same host"
+  },
+  "tooling": {
+    "tool": "k6",
+    "version": "v2.3.0",
+    "script": "loadtest/k6.js",
+    "alternative": "loadtest/locustfile.py"
+  },
+  "subjects": {
+    "local_container": {
+      "image": "itcs355-serve:ef1194c",
+      "image_digest": "sha256:4353337add7f2aa754bc44a5cba2585ffbc7d7be5ab8f9f9da3e51651a1c35a6",
+      "matches_deployed_image": true,
+      "cpus": 2,
+      "memory": "7500m",
+      "workers": 1,
+      "host_arch": "arm64",
+      "image_arch": "amd64",
+      "emulated": true,
+      "emulation_tax_x": 1.7,
+      "model_uri": "gs://itcs355-6688053/registry/itcs355-6688053/itcs355-register-20260921-014231/model"
+    },
+    "endpoint": {
+      "display_name": "itcs355-6688053-endpoint",
+      "resource": "projects/916002887960/locations/asia-southeast1/endpoints/4434156671983419392",
+      "region": "asia-southeast1",
+      "client_location": "Bangkok",
+      "deployments_measured": {
+        "n1-standard-2": "6116022434387722240",
+        "n1-standard-4": "228480715275108352"
+      }
+    }
+  },
+  "primary_sweep_local_2vcpu_60s": {
+    "1": {
+      "rps": 37.49,
+      "n": 2250,
+      "error_rate": 0,
+      "min": 14.01,
+      "p50": 26.31,
+      "p95": 30.25,
+      "p99": 32.03,
+      "max": 56.82
+    },
+    "10": {
+      "rps": 51.28,
+      "n": 3083,
+      "error_rate": 0,
+      "min": 120.26,
+      "p50": 193.62,
+      "p95": 221.67,
+      "p99": 241.42,
+      "max": 295.46
+    },
+    "50": {
+      "rps": 49.31,
+      "n": 2979,
+      "error_rate": 0,
+      "min": 504.95,
+      "p50": 996.53,
+      "p95": 1210.24,
+      "p99": 1302.61,
+      "max": 1655.06
+    }
+  },
+  "breaking_point": {
+    "concurrency": 3,
+    "criterion": "service p95 crosses 50 ms",
+    "p95_at_2vu_ms": [
+      41.5,
+      41.58,
+      41.88,
+      42.29,
+      41.94
+    ],
+    "p95_at_3vu_ms": [
+      64.95,
+      65.56,
+      65.55
+    ],
+    "p95_at_1vu_ms": [
+      30.11,
+      30.37,
+      30.13
+    ],
+    "first_pass_disagreed": {
+      "p95_2vu_ms": 53.1,
+      "p95_3vu_ms": 77.2,
+      "note": "first pass ran ~25% slow and placed the breaking point at 2; repeats under quiet conditions place it at 3"
+    },
+    "levels": {
+      "1": {
+        "rps": 37.31,
+        "n": 1120,
+        "error_rate": 0,
+        "min": 15.92,
+        "p50": 26.34,
+        "p95": 30.11,
+        "p99": 32.09,
+        "max": 56.88
+      },
+      "2": {
+        "rps": 51.68,
+        "n": 1551,
+        "error_rate": 0,
+        "min": 25.07,
+        "p50": 38.72,
+        "p95": 41.5,
+        "p99": 51.09,
+        "max": 71.06
+      },
+      "3": {
+        "rps": 53.0,
+        "n": 1592,
+        "error_rate": 0,
+        "min": 36.73,
+        "p50": 53.8,
+        "p95": 64.95,
+        "p99": 74.19,
+        "max": 99.67
+      },
+      "4": {
+        "rps": 47.11,
+        "n": 1416,
+        "error_rate": 0,
+        "min": 54.58,
+        "p50": 84.84,
+        "p95": 98.27,
+        "p99": 111.11,
+        "max": 128.86
+      },
+      "5": {
+        "rps": 46.97,
+        "n": 1412,
+        "error_rate": 0,
+        "min": 76.45,
+        "p50": 105.12,
+        "p95": 121.48,
+        "p99": 136.18,
+        "max": 147.72
+      }
+    }
+  },
+  "cold_start": {
+    "local_container_2vcpu_emulated": {
+      "uvicorn_to_ready_s": 6.53,
+      "load_seconds": 4.951
+    },
+    "endpoint_n1_standard_2": {
+      "uvicorn_to_ready_s": 42.38,
+      "load_seconds": 37.603
+    },
+    "endpoint_n1_standard_4": {
+      "uvicorn_to_ready_s": 21.4,
+      "load_seconds": 19.613
+    },
+    "local_file_task1": {
+      "load_seconds": 0.83
+    },
+    "budget_s": 60,
+    "readiness_gate_observed": "503 model_status=loading for 19 s, then 200 ready",
+    "selftest_probability_both_replicas": 0.5297927687777871
+  },
+  "latency_decomposition_local_emulated_ms": {
+    "dataframe_1_row": 0.085,
+    "dataframe_100_rows": 0.113,
+    "predict_proba_1_row": 25.029,
+    "predict_proba_100_rows": 25.053,
+    "http_asgi_json_pydantic_response": 0.71,
+    "sum": 25.824,
+    "measured_p50": 26.31
+  },
+  "model": {
+    "estimator": "RandomForestClassifier",
+    "n_estimators": 200,
+    "max_depth": 4,
+    "n_jobs": -1,
+    "n_jobs_predict_proba_ms_native": {
+      "-1": 14.911,
+      "2": 14.896,
+      "1": 3.624
+    },
+    "n_jobs_1_speedup_x": 4.11,
+    "finding": "n_jobs=-1 costs ~11 ms per call of joblib dispatch and buys nothing at inference; not changed, because changing it mid-measurement would invalidate every table"
+  },
+  "experiment_1_batch_vs_singles": {
+    "vu1_batch": {
+      "rps": 35.37,
+      "call_p50_ms": 26.8,
+      "call_p95_ms": 30.41,
+      "per_row_p50_ms": 0.268,
+      "group_100_p50_ms": null,
+      "rows_per_s": 3537.2
+    },
+    "vu1_singles": {
+      "rps": 36.5,
+      "call_p50_ms": 27.14,
+      "call_p95_ms": 29.12,
+      "per_row_p50_ms": 27.49,
+      "group_100_p50_ms": 2749,
+      "rows_per_s": 36.5
+    },
+    "vu10_batch": {
+      "rps": 41.68,
+      "call_p50_ms": 236.41,
+      "call_p95_ms": 282.87,
+      "per_row_p50_ms": 2.364,
+      "group_100_p50_ms": null,
+      "rows_per_s": 4167.7
+    },
+    "vu10_singles": {
+      "rps": 43.85,
+      "call_p50_ms": 224.92,
+      "call_p95_ms": 269.22,
+      "per_row_p50_ms": 227.21,
+      "group_100_p50_ms": 22721,
+      "rows_per_s": 43.9
+    }
+  },
+  "experiment_1_conclusion": {
+    "row_throughput_speedup_x": {
+      "1_vu": 97.0,
+      "10_vu": 95.0
+    },
+    "group_wall_clock_speedup_x": 102.6,
+    "advantage_disappears_at_concurrency": null,
+    "why": "predict_proba costs the same for 1 row as for 100 (25.029 vs 25.053 ms), so concurrency multiplies the same fixed cost on both sides; the schema caps a batch at 100 rows, about 1% of where scoring would overtake dispatch"
+  },
+  "experiment_2a_valid_inflation": {
+    "1": {
+      "body_bytes": 214,
+      "rps": 36.0,
+      "p50_ms": 27.39,
+      "p95_ms": 29.5,
+      "per_row_p50_ms": 27.392
+    },
+    "5": {
+      "body_bytes": 1029,
+      "rps": 36.0,
+      "p50_ms": 27.43,
+      "p95_ms": 29.39,
+      "per_row_p50_ms": 5.486
+    },
+    "10": {
+      "body_bytes": 2049,
+      "rps": 35.3,
+      "p50_ms": 27.44,
+      "p95_ms": 30.04,
+      "per_row_p50_ms": 2.744
+    },
+    "25": {
+      "body_bytes": 5108,
+      "rps": 34.9,
+      "p50_ms": 28.08,
+      "p95_ms": 31.34,
+      "per_row_p50_ms": 1.123
+    },
+    "50": {
+      "body_bytes": 10205,
+      "rps": 34.6,
+      "p50_ms": 28.14,
+      "p95_ms": 31.77,
+      "per_row_p50_ms": 0.563
+    },
+    "100": {
+      "body_bytes": 20399,
+      "rps": 34.0,
+      "p50_ms": 28.65,
+      "p95_ms": 32.13,
+      "per_row_p50_ms": 0.286
+    }
+  },
+  "experiment_2b_rejected_inflation": {
+    "0": {
+      "body_bytes": 212,
+      "rps": 1076.4,
+      "p50_ms": 0.84,
+      "p95_ms": 1.14
+    },
+    "1000": {
+      "body_bytes": 1212,
+      "rps": 1066.9,
+      "p50_ms": 0.84,
+      "p95_ms": 1.13
+    },
+    "10000": {
+      "body_bytes": 10212,
+      "rps": 924.0,
+      "p50_ms": 0.9,
+      "p95_ms": 1.22
+    },
+    "100000": {
+      "body_bytes": 100212,
+      "rps": 393.8,
+      "p50_ms": 1.37,
+      "p95_ms": 2.54
+    },
+    "1000000": {
+      "body_bytes": 1000212,
+      "rps": 74.1,
+      "p50_ms": 4.36,
+      "p95_ms": 5.67
+    },
+    "5000000": {
+      "body_bytes": 5000212,
+      "rps": 15.7,
+      "p50_ms": 16.84,
+      "p95_ms": 19.14
+    },
+    "8000000": {
+      "body_bytes": 8000212,
+      "rps": 9.7,
+      "p50_ms": 29.08,
+      "p95_ms": 32.91
+    }
+  },
+  "experiment_2_conclusion": {
+    "valid_max_body_bytes": 20399,
+    "cost_of_95x_bytes_ms": 1.26,
+    "cost_of_95x_bytes_pct": 4.6,
+    "serialisation_overtakes_scoring_at_bytes": 8000212,
+    "multiple_of_contract_max": 392,
+    "ms_per_mb_1_to_5": 3.12,
+    "ms_per_mb_5_to_8": 4.08,
+    "side_finding": "8 MB bodies rejected at validation still drag throughput to 9.7 rps with zero model time; extra='forbid' cannot refuse a body before it is read, so a body-size limit belongs at the ingress"
+  },
+  "experiment_3_instance_size": {
+    "from": "n1-standard-2",
+    "to": "n1-standard-4",
+    "registry_version": 3,
+    "traffic_during_test": 100,
+    "client_side": {
+      "n1-standard-2_1vu": {
+        "rps": 5.25,
+        "n": 158,
+        "error_rate": 0,
+        "min": 130.8,
+        "p50": 177.59,
+        "p95": 288.65,
+        "p99": 353.31,
+        "max": 365.03
+      },
+      "n1-standard-2_10vu": {
+        "rps": 10.27,
+        "n": 315,
+        "error_rate": 0,
+        "min": 513.38,
+        "p50": 930.02,
+        "p95": 1293.49,
+        "p99": 1544.02,
+        "max": 1571.49
+      },
+      "n1-standard-2_50vu": {
+        "rps": 9.06,
+        "n": 296,
+        "error_rate": 0,
+        "min": 2282.13,
+        "p50": 5575.12,
+        "p95": 6702.33,
+        "p99": 7299.12,
+        "max": 7844.09
+      },
+      "n1-standard-4_1vu": {
+        "rps": 6.86,
+        "n": 206,
+        "error_rate": 0,
+        "min": 98.52,
+        "p50": 136.41,
+        "p95": 231.99,
+        "p99": 284.62,
+        "max": 320.11
+      },
+      "n1-standard-4_10vu": {
+        "rps": 17.69,
+        "n": 535,
+        "error_rate": 0,
+        "min": 291.1,
+        "p50": 548.98,
+        "p95": 717.42,
+        "p99": 829.86,
+        "max": 1048.18
+      },
+      "n1-standard-4_50vu": {
+        "rps": 16.37,
+        "n": 523,
+        "error_rate": 0,
+        "min": 1155.31,
+        "p50": 3072.97,
+        "p95": 3619.21,
+        "p99": 3935.62,
+        "max": 4063.49
+      }
+    },
+    "container_side": {
+      "n1-standard-2": {
+        "1": {
+          "n": 158,
+          "rps": 5.3,
+          "p50": 82.9,
+          "p95": 123.5,
+          "p99": 152.8,
+          "min": 68.5
+        },
+        "10": {
+          "n": 313,
+          "rps": 10.4,
+          "p50": 793.5,
+          "p95": 1128.3,
+          "p99": 1370.0,
+          "min": 233.8
+        },
+        "50": {
+          "n": 298,
+          "rps": 9.9,
+          "p50": 5111.6,
+          "p95": 5947.3,
+          "p99": 6435.1,
+          "min": 718.6
+        }
+      },
+      "n1-standard-4": {
+        "1": {
+          "n": 206,
+          "rps": 6.9,
+          "p50": 50.4,
+          "p95": 70.9,
+          "p99": 82.6,
+          "min": 48.0
+        },
+        "10": {
+          "n": 532,
+          "rps": 17.7,
+          "p50": 458.7,
+          "p95": 569.5,
+          "p99": 677.1,
+          "min": 148.1
+        },
+        "50": {
+          "n": 526,
+          "rps": 17.5,
+          "p50": 2788.8,
+          "p95": 3084.6,
+          "p99": 3257.8,
+          "min": 199.8
+        }
+      }
+    },
+    "network_and_front_door_p50_ms": {
+      "n1-standard-2_1vu": 94.7,
+      "n1-standard-4_1vu": 86.0
+    },
+    "latency_change": {
+      "p95_1vu_ms": [
+        123.5,
+        70.9
+      ],
+      "pct": -42.6,
+      "saturated_rps": [
+        10.4,
+        17.7
+      ],
+      "throughput_pct": 70.2,
+      "cold_start_s": [
+        37.603,
+        19.613
+      ],
+      "cold_start_pct": -47.8
+    },
+    "cost_change": {
+      "thb_per_hour": [
+        5.09,
+        10.18
+      ],
+      "pct": 100.0,
+      "thb_per_1000_requests": [
+        0.136,
+        0.1598
+      ],
+      "pct_per_request": 17.5,
+      "price_source": "src/costs.SERVING_PRICE_TABLE"
+    },
+    "verdict": "+100% cost for +70% throughput: 17.5% worse per request. Buys latency and cold start, not efficiency. Still misses the 50 ms target at one caller.",
+    "local_cpu_control": {
+      "1vu": {
+        "2_vcpu": {
+          "rps": 37.99,
+          "n": 1140,
+          "error_rate": 0,
+          "min": 15.46,
+          "p50": 25.8,
+          "p95": 28.38,
+          "p99": 45.24,
+          "max": 134.44
+        },
+        "4_vcpu": {
+          "rps": 37.45,
+          "n": 1124,
+          "error_rate": 0,
+          "min": 23.86,
+          "p50": 26.33,
+          "p95": 28.68,
+          "p99": 30.52,
+          "max": 53.44
+        }
+      },
+      "2vu": {
+        "2_vcpu": {
+          "rps": 52.3,
+          "n": 1570,
+          "error_rate": 0,
+          "min": 25.07,
+          "p50": 38.18,
+          "p95": 40.8,
+          "p99": 50.93,
+          "max": 74.62
+        },
+        "4_vcpu": {
+          "rps": 50.9,
+          "n": 1528,
+          "error_rate": 0,
+          "min": 25.21,
+          "p50": 39.88,
+          "p95": 44.03,
+          "p99": 52.9,
+          "max": 81.4
+        }
+      },
+      "10vu": {
+        "2_vcpu": {
+          "rps": 50.71,
+          "n": 1527,
+          "error_rate": 0,
+          "min": 126.31,
+          "p50": 195.38,
+          "p95": 225.27,
+          "p99": 244.97,
+          "max": 260.36
+        },
+        "4_vcpu": {
+          "rps": 50.61,
+          "n": 1522,
+          "error_rate": 0,
+          "min": 90.36,
+          "p50": 195.9,
+          "p95": 231.7,
+          "p99": 251.19,
+          "max": 279.06
+        }
+      }
+    },
+    "local_cpu_control_note": "locally twice the cores changes nothing (within noise at every level); under emulation the constraint is instruction translation, not core count",
+    "cheaper_alternatives_unmeasured": [
+      {
+        "change": "n_jobs=1 at load time",
+        "thb_per_hour": 0,
+        "projected": "4.1x on the dominant term"
+      },
+      {
+        "change": "uvicorn --workers 2",
+        "thb_per_hour": 0,
+        "projected": "~2x throughput; doubles cold start toward the 60 s probe cliff"
+      },
+      {
+        "change": "min_replicas=2",
+        "thb_per_hour": 10.18,
+        "projected": "~2x throughput, same unit cost, survives a replica restart"
+      },
+      {
+        "change": "e2-standard-2",
+        "thb_per_hour": 3.58,
+        "projected": "0.0956 THB/1000 requests, 29.7% cheaper, if one process is the ceiling"
+      }
+    ]
+  },
+  "requests_issued": {
+    "local_scored": 79626,
+    "local_rejected_on_purpose": 215545,
+    "endpoint": 2033,
+    "total": 297204,
+    "failures": 0
+  },
+  "cost_of_this_task_thb": {
+    "n1_standard_4_extra_replica_minutes": 9,
+    "n1_standard_4_thb": 1.53,
+    "n1_standard_2": "already running from Task 2",
+    "local": 0,
+    "per_request": 0
+  },
+  "endpoint_state_after": {
+    "deployments": 1,
+    "instance": "n1-standard-2",
+    "traffic": 100,
+    "thb_per_hour": 5.09,
+    "note": "traffic PATCHed back to the original deployment BEFORE undeploying n1-standard-4; the adapter has no traffic-split method yet, Task 4 needs one"
+  }
+}
