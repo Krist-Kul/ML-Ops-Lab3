@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from cloudlayer.base import CloudAdapter
+from src import traffic as traffic_split
 
 
 def _split_gs_uri(uri: str) -> tuple[str, str]:
@@ -390,8 +391,16 @@ class GcpAdapter(CloudAdapter):
         the endpoint called `endpoint`, creating it if it does not exist. Returns the
         endpoint resource name.
 
-        `traffic` is the share this deployment takes; the remainder stays with whatever is
-        already deployed. 100 is the Task 2 case — first model, all the traffic.
+        `traffic` is the share this deployment takes. The remainder is divided among the
+        deployments already attached, in proportion to what they hold now. 100 is the Task 2
+        case — first model, all the traffic — and it takes every other deployment to 0%.
+
+        The remainder has to be computed and sent explicitly. Vertex rejects a traffic_split
+        that does not total 100 outright, with "The traffic percentage values must add up to
+        100": it does not treat the map as a patch that leaves unnamed deployments alone.
+        This method used to send only {"0": traffic} and claim the rest stayed where it was,
+        which worked for the only case Task 2 exercised — the first deployment, taking
+        everything — and failed the first time a canary asked for 10%.
         """
         from google.cloud import aiplatform_v1 as v
 
@@ -424,14 +433,27 @@ class GcpAdapter(CloudAdapter):
             ),
             service_account=self._service_account(),
         )
-        # "0" is how the API names the model being deployed by this request. Existing
-        # deployments keep the rest of the split, so this is also the canary primitive.
+        # "0" is how the API names the model being deployed by this request; every other key
+        # is an existing deployment id. The whole map is replaced, so it must total 100.
         response = endpoints.deploy_model(
             endpoint=target, deployed_model=deployed,
-            traffic_split={"0": int(traffic)},
+            traffic_split=self._split_for_new_deployment(target, int(traffic)),
         ).result(timeout=timeout_s)
         self._last_deployed_model_id = response.deployed_model.id
         return target
+
+    def _split_for_new_deployment(self, endpoint_resource: str, traffic: int) -> dict[str, int]:
+        """The complete traffic split to send with a deploy that takes `traffic` percent.
+
+        Reads what is attached and hands the division to `src.traffic`, which is where the
+        arithmetic lives because the arithmetic is not provider-specific. What IS specific is
+        that the map's key for the deployment being created is its index in this request.
+        """
+        live = self._endpoints().get_endpoint(name=endpoint_resource)
+        return traffic_split.split_for_new_deployment(
+            current=dict(live.traffic_split),
+            deployment_ids=[d.id for d in live.deployed_models],
+            traffic=traffic)
 
     def list_deployments(self, endpoint: str) -> list[dict[str, Any]]:
         """What is attached to this endpoint, and what share of traffic each one has.
@@ -484,23 +506,15 @@ class GcpAdapter(CloudAdapter):
         from google.cloud import aiplatform_v1 as v
         from google.protobuf import field_mask_pb2
 
-        total = sum(split.values())
-        if total != 100:
-            raise ValueError(
-                f"traffic split must total 100, got {total} from {split}. Vertex rejects "
-                "anything else, and a split that does not add up is usually a forgotten "
-                "deployment about to lose all its traffic.")
-
         target = self._find_endpoint(endpoint)
         if target is None:
             raise LookupError(f"No endpoint named {endpoint!r}.")
 
-        attached = {d["deployed_model_id"] for d in self.list_deployments(endpoint)}
-        unknown = set(split) - attached
-        if unknown:
-            raise LookupError(
-                f"{sorted(unknown)} is not deployed on {endpoint!r}. Attached: "
-                f"{sorted(attached)}.")
+        # Validated before the call so a bad split is a readable local error rather than a
+        # provider 400, and so the two failures that matter — a total that is not 100, and an
+        # id that is not attached — are named for what they are.
+        traffic_split.validate(
+            split, attached={d["deployed_model_id"] for d in self.list_deployments(endpoint)})
 
         try:
             live = self._endpoints().update_endpoint(
@@ -510,6 +524,48 @@ class GcpAdapter(CloudAdapter):
         except gexc.GoogleAPICallError as exc:  # pragma: no cover - needs a live endpoint
             raise RuntimeError(f"Vertex refused the split {split}: {exc.message}") from exc
         return dict(live.traffic_split)
+
+    def _prediction_client(self):
+        """One PredictionServiceClient, reused.
+
+        Built per call this used to add a gRPC channel and a TLS handshake to every request.
+        That is invisible on a three-payload smoke test and ruinous on a canary run of a few
+        thousand: it caps throughput, and because `invoke` reports the round trip it goes
+        looks like it belongs to the service — a latency signal built on it would be
+        measuring channel setup. Cached under a lock because the canary driver calls `invoke`
+        from a thread pool; the client itself is documented as thread-safe.
+        """
+        import threading
+
+        from google.cloud import aiplatform_v1 as v
+
+        existing = getattr(self, "_prediction_client_cache", None)
+        if existing is not None:
+            return existing
+        lock = self.__dict__.setdefault("_prediction_client_lock", threading.Lock())
+        with lock:
+            existing = getattr(self, "_prediction_client_cache", None)
+            if existing is None:
+                existing = v.PredictionServiceClient(client_options={
+                    "api_endpoint": f"{self.cfg.region}-aiplatform.googleapis.com"})
+                self._prediction_client_cache = existing
+        return existing
+
+    def _resolve_endpoint_cached(self, name: str) -> str | None:
+        """`_find_endpoint`, memoised for the hot path.
+
+        Resolving a display name costs a list_endpoints call, and on the canary driver's few
+        thousand invocations that doubles the API traffic and the wall clock for a lookup
+        whose answer does not change. Only `invoke` uses this; deploy, undeploy, split and
+        teardown keep the uncached lookup, because those are the operations that create and
+        destroy the thing being resolved and a stale answer there would be acted on. If an
+        endpoint is deleted underneath a cached name the next call fails NotFound, which is
+        the loud failure rather than the quiet one.
+        """
+        cache = self.__dict__.setdefault("_endpoint_name_cache", {})
+        if name not in cache:
+            cache[name] = self._find_endpoint(name)
+        return cache[name]
 
     def invoke(self, endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
         """Call the endpoint once. `payload` is either one row, or {"instances": [...]}.
@@ -524,7 +580,7 @@ class GcpAdapter(CloudAdapter):
         from google.cloud import aiplatform_v1 as v
         from google.protobuf import json_format, struct_pb2
 
-        target = self._find_endpoint(endpoint)
+        target = self._resolve_endpoint_cached(endpoint)
         if target is None:
             raise LookupError(f"No endpoint named {endpoint!r} in {self._registry_parent()}.")
 
@@ -532,8 +588,7 @@ class GcpAdapter(CloudAdapter):
             else [payload]
         instances = [json_format.ParseDict(row, struct_pb2.Value()) for row in rows]
 
-        client = v.PredictionServiceClient(
-            client_options={"api_endpoint": f"{self.cfg.region}-aiplatform.googleapis.com"})
+        client = self._prediction_client()
         started = time.perf_counter()
         response = client.predict(endpoint=target, instances=instances)
         latency_ms = (time.perf_counter() - started) * 1000
