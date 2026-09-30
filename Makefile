@@ -135,6 +135,23 @@ loadtest: ## Load test at three concurrency levels
 	  k6 run -e TARGET=$(TARGET) -e VUS=$$vus loadtest/k6.js || true; \
 	done
 
+CANARY_VERSION ?=
+canary-reference: ## Measure what normal looks like, BEFORE any canary exists
+	python scripts/canary.py reference --endpoint $(ENDPOINT)
+
+canary-deploy: ## Attach the canary at TRAFFIC% (default 10)
+	python scripts/canary.py deploy --endpoint $(ENDPOINT) \
+	  --canary-version $(CANARY_VERSION) --traffic $(or $(TRAFFIC),10) --instance $(INSTANCE)
+
+canary-watch: ## Drive traffic and detect the degradation from metrics alone
+	python scripts/canary.py watch --endpoint $(ENDPOINT)
+
+canary-rollback: ## Traffic back to production, then release the canary's machines
+	python scripts/canary.py rollback --endpoint $(ENDPOINT)
+
+canary-status: ## Who is attached, what share each holds, what it costs
+	python scripts/canary.py status --endpoint $(ENDPOINT)
+
 # --- Lab 4 -------------------------------------------------------------------
 inject-drift: ## Shift a feature's distribution on purpose
 	python scripts/inject_drift.py --feature temp_c --mode shift --magnitude 6

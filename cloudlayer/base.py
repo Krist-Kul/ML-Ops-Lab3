@@ -106,6 +106,23 @@ class CloudAdapter(ABC):
         """
         raise NotImplementedError("Lab 3")
 
+    def split_traffic(self, endpoint: str, split: dict[str, int]) -> dict[str, int]:
+        """Set the traffic share of deployments that are ALREADY attached. Returns the split.
+
+        `deploy(traffic=N)` can only set a share while attaching something new, which covers
+        starting a canary and nothing else. Changing the split of two live deployments — the
+        rollback — needs this, and so does taking a canary to 0% before detaching it.
+
+        `split` maps deployment id to percent and must total 100: every provider rejects a
+        split that does not, and rejecting it here gives a readable error instead of theirs.
+
+        Moving traffic is NOT the same as releasing machines. A deployment left at 0% keeps
+        its replicas and keeps billing, so a rollback is this call followed by `undeploy`.
+        The vocabulary differs — production variant weights, deployment traffic percentages,
+        traffic split across deployed models — and the concept does not.
+        """
+        raise NotImplementedError("Lab 3")
+
     # --- Lab 4 ---------------------------------------------------------------
     def emit_metric(self, name: str, value: float, unit: str = "None") -> None:
         raise NotImplementedError("Lab 4")

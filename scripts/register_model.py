@@ -59,6 +59,10 @@ def parse_args() -> argparse.Namespace:
                    help="move --promote to this existing version and exit")
     p.add_argument("--allow-dirty", action="store_true",
                    help="register from an uncommitted tree; records <sha>-dirty")
+    # Overridable because Lab 3 Task 4 registers a canary through this same script, and a
+    # canary's record must not overwrite the evidence for the version that is in production.
+    p.add_argument("--report", type=Path, default=REPORT)
+    p.add_argument("--record", type=Path, default=RECORD)
     return p.parse_args()
 
 
@@ -272,10 +276,10 @@ def main() -> int:
         mlflow.set_tags({"registry_name": name, "registry_version": version,
                          "registry_alias": entry["promoted_alias"]})
 
-    REPORT.parent.mkdir(parents=True, exist_ok=True)
-    RECORD.write_text(json.dumps({"entry": entry, "run": record}, indent=2, default=str))
-    write_report(REPORT, entry, record, comparison)
-    print(f"promoted {args.promote or '—'} -> version {version}; wrote {REPORT}")
+    args.report.parent.mkdir(parents=True, exist_ok=True)
+    args.record.write_text(json.dumps({"entry": entry, "run": record}, indent=2, default=str))
+    write_report(args.report, entry, record, comparison)
+    print(f"promoted {args.promote or '—'} -> version {version}; wrote {args.report}")
     return 0
 
 

@@ -470,6 +470,47 @@ class GcpAdapter(CloudAdapter):
             endpoint=target, deployed_model_id=deployed_model_id).result(timeout=timeout_s)
         return deployed_model_id
 
+    def split_traffic(self, endpoint: str, split: dict[str, int]) -> dict[str, int]:
+        """Set the traffic split across deployments already attached to this endpoint.
+
+        Vertex has no call that changes one deployment's share; the split is a field on the
+        Endpoint and is replaced wholesale, so every deployment that should keep traffic has
+        to appear in `split`. Anything omitted goes to 0% — which is why this validates the
+        total rather than trusting the caller, and why the ids are checked against what is
+        actually attached: a typo in a deployment id would otherwise silently route 100% of
+        production traffic to nothing.
+        """
+        from google.api_core import exceptions as gexc
+        from google.cloud import aiplatform_v1 as v
+        from google.protobuf import field_mask_pb2
+
+        total = sum(split.values())
+        if total != 100:
+            raise ValueError(
+                f"traffic split must total 100, got {total} from {split}. Vertex rejects "
+                "anything else, and a split that does not add up is usually a forgotten "
+                "deployment about to lose all its traffic.")
+
+        target = self._find_endpoint(endpoint)
+        if target is None:
+            raise LookupError(f"No endpoint named {endpoint!r}.")
+
+        attached = {d["deployed_model_id"] for d in self.list_deployments(endpoint)}
+        unknown = set(split) - attached
+        if unknown:
+            raise LookupError(
+                f"{sorted(unknown)} is not deployed on {endpoint!r}. Attached: "
+                f"{sorted(attached)}.")
+
+        try:
+            live = self._endpoints().update_endpoint(
+                endpoint=v.Endpoint(name=target, traffic_split={k: int(x) for k, x in split.items()}),
+                update_mask=field_mask_pb2.FieldMask(paths=["traffic_split"]),
+            )
+        except gexc.GoogleAPICallError as exc:  # pragma: no cover - needs a live endpoint
+            raise RuntimeError(f"Vertex refused the split {split}: {exc.message}") from exc
+        return dict(live.traffic_split)
+
     def invoke(self, endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
         """Call the endpoint once. `payload` is either one row, or {"instances": [...]}.
 
