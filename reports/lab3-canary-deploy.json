@@ -1,0 +1,26 @@
+{
+  "endpoint": "projects/916002887960/locations/asia-southeast1/endpoints/4434156671983419392",
+  "endpoint_display_name": "itcs355-6688053-endpoint",
+  "deployed_model_id": "5453782182931726336",
+  "serving_version": "5",
+  "source_version": "4",
+  "source_artifact_uri": "gs://itcs355-6688053/studies/lab2-20260921-010551/trials/trial-01/model",
+  "serving_image": null,
+  "instance": "n1-standard-2",
+  "min_replicas": 1,
+  "max_replicas": 1,
+  "spot": false,
+  "traffic": 10,
+  "deploy_seconds": 417.1,
+  "deployed_at": "2026-09-30T19:31:30Z",
+  "lineage": {
+    "data_version": "422cccb9136e8140",
+    "git_commit": "ef3748af7e4337c4d845a708479667a3f372a7c6-dirty",
+    "image_digest": "asia-southeast1-docker.pkg.dev/itcs355-6688053/itcs355/itcs355-lab1@sha256:355bcf8f42f24f13af13d32792f708a725fc920852e0ff54055a094cf534346b",
+    "metric_test": "0.851493",
+    "metric_val": "0.839153",
+    "mlflow_run_id": "429a96b858d646379d363a034b211fd6",
+    "seed": "20260101",
+    "training_job_id": "3460425601012203520"
+  }
+}

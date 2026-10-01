@@ -91,7 +91,14 @@ class CloudAdapter(ABC):
     def deploy(self, model_ref: str, endpoint: str, instance: str) -> str:
         raise NotImplementedError("Lab 3")
 
-    def invoke(self, endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
+    def invoke(self, endpoint: str, payload: dict[str, Any],
+               timeout_s: float = 30.0) -> dict[str, Any]:
+        """Call the endpoint once, with a deadline.
+
+        `timeout_s` is not optional decoration. An unbounded predict call inside a loop that
+        owns a billed resource is a cost bug: Lab 3 Task 4 lost 19 hours and about 194 THB to
+        one that never returned after the host slept.
+        """
         raise NotImplementedError("Lab 3")
 
     def list_deployments(self, endpoint: str) -> list[dict[str, Any]]:

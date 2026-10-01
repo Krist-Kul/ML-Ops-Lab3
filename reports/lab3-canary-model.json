@@ -1,0 +1,60 @@
+{
+  "entry": {
+    "name": "itcs355-6688053",
+    "resource": "projects/916002887960/locations/asia-southeast1/models/1022699745459568640@4",
+    "version": "4",
+    "artifact_uri": "gs://itcs355-6688053/studies/lab2-20260921-010551/trials/trial-01/model",
+    "aliases": [],
+    "lineage": {
+      "data_version": "422cccb9136e8140",
+      "git_commit": "ef3748af7e4337c4d845a708479667a3f372a7c6-dirty",
+      "image_digest": "asia-southeast1-docker.pkg.dev/itcs355-6688053/itcs355/itcs355-lab1@sha256:355bcf8f42f24f13af13d32792f708a725fc920852e0ff54055a094cf534346b",
+      "metric_test": "0.851493",
+      "metric_val": "0.839153",
+      "mlflow_run_id": "429a96b858d646379d363a034b211fd6",
+      "seed": "20260101",
+      "training_job_id": "3460425601012203520"
+    },
+    "labels": {
+      "metric_test": "0-851493",
+      "metric_val": "0-839153",
+      "data_version": "422cccb9136e8140",
+      "image_digest": "asia-southeast1-docker-pkg-dev-itcs355-6688053-itcs355-itcs355-",
+      "lab": "2",
+      "seed": "20260101",
+      "git_commit": "ef3748af7e4337c4d845a708479667a3f372a7c6-dirty",
+      "training_job_id": "3460425601012203520",
+      "student": "itcs355-6688053",
+      "course": "itcs355",
+      "mlflow_run_id": "429a96b858d646379d363a034b211fd6"
+    },
+    "created": "2026-09-30T19:09:56.92056Z",
+    "promoted_alias": "none"
+  },
+  "run": {
+    "trial": "trial-01",
+    "params": {
+      "n_estimators": 200,
+      "min_samples_leaf": 5,
+      "max_depth": 4,
+      "max_features": "sqrt",
+      "class_weight": "balanced_subsample"
+    },
+    "seed": 20260101,
+    "instance": "n1-standard-4",
+    "spot": true,
+    "duration_s": 13.443,
+    "cost_thb": 0.008514,
+    "git_commit": "ef3748af7e4337c4d845a708479667a3f372a7c6-dirty",
+    "data_version": "422cccb9136e8140",
+    "training_job_id": "projects/916002887960/locations/asia-southeast1/customJobs/3460425601012203520",
+    "image_digest": "asia-southeast1-docker.pkg.dev/itcs355-6688053/itcs355/itcs355-lab1@sha256:355bcf8f42f24f13af13d32792f708a725fc920852e0ff54055a094cf534346b",
+    "model_uri": "gs://itcs355-6688053/studies/lab2-20260921-010551/trials/trial-01/model",
+    "metrics": {
+      "val_roc_auc": 0.8391531797884482,
+      "val_pr_auc": 0.3839585045525172,
+      "test_roc_auc": 0.8514928779829443,
+      "test_pr_auc": 0.48671591293893235
+    }
+  }
+}

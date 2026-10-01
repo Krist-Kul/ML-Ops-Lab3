@@ -567,7 +567,8 @@ class GcpAdapter(CloudAdapter):
             cache[name] = self._find_endpoint(name)
         return cache[name]
 
-    def invoke(self, endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
+    def invoke(self, endpoint: str, payload: dict[str, Any],
+               timeout_s: float = 30.0) -> dict[str, Any]:
         """Call the endpoint once. `payload` is either one row, or {"instances": [...]}.
 
         Returns the predictions plus what the platform says about who answered — the
@@ -590,7 +591,12 @@ class GcpAdapter(CloudAdapter):
 
         client = self._prediction_client()
         started = time.perf_counter()
-        response = client.predict(endpoint=target, instances=instances)
+        # A deadline, because without one this call can block forever and did: during Task 4
+        # the laptop slept mid-run, the gRPC connections died under it, and a predict call
+        # never returned or raised. The driver process stayed alive holding a canary up for
+        # 19 hours at 10.18 THB/h. An unbounded network call inside a loop that owns a billed
+        # resource is a cost bug, not a reliability nicety.
+        response = client.predict(endpoint=target, instances=instances, timeout=timeout_s)
         latency_ms = (time.perf_counter() - started) * 1000
 
         # Convert the whole response rather than each prediction: proto-plus has already

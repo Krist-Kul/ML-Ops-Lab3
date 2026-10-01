@@ -42,8 +42,19 @@ from monitoring import canary as detector  # noqa: E402
 from src import config, costs, data, seeds  # noqa: E402
 
 RECORD = Path("reports/lab3-canary.json")
-BLIND = Path("reports/lab3-canary-blind.jsonl")
-ATTESTED = Path("reports/lab3-canary-attested.jsonl")
+
+# One file per phase, not one file per run. The first run appended every phase to a single
+# blind stream, and the rollback's 300 post-rollback probes landed directly after the watch's
+# requests with nothing in the blind stream to tell them apart — the detector then read the
+# recovered traffic as two more windows of the incident. A phase marker inside the blind
+# stream would have fixed the symptom while handing the detector a hint about when the canary
+# arrived, which is the one thing it must not be told. Separate files leak nothing.
+def blind_path(phase: str) -> Path:
+    return Path(f"reports/lab3-canary-blind-{phase}.jsonl")
+
+
+def attested_path(phase: str) -> Path:
+    return Path(f"reports/lab3-canary-attested-{phase}.jsonl")
 
 
 def now() -> str:
@@ -112,8 +123,13 @@ class Driver:
                         "model_version_id": response.get("model_version_id", ""),
                         "container_reported_version": prediction.get("model_version", "")}
         with self.lock:
+            # Flushed per line. The first run was killed mid-watch and lost 24 buffered rows
+            # from one stream but not the other, which broke the index alignment the two
+            # files rely on. Evidence that only survives a clean exit is not evidence.
             self.blind.write(json.dumps(blind_row) + "\n")
+            self.blind.flush()
             self.attested.write(json.dumps(attested_row) + "\n")
+            self.attested.flush()
             self.scores.append(probability)
             self.latencies.append(latency)
             self.stamps.append(stamp)
@@ -170,10 +186,11 @@ def phase_reference(adapter, endpoint: str, args) -> dict:
             "production serving, or it is a reference to a mixture.")
     print_deployments(live, "before the reference window")
 
-    BLIND.unlink(missing_ok=True)
-    ATTESTED.unlink(missing_ok=True)
     rows = payload_rows(args.reference_n, args.seed)
-    driver = Driver(adapter, endpoint, BLIND, ATTESTED)
+    blind, attested = blind_path("reference"), attested_path("reference")
+    blind.unlink(missing_ok=True)
+    attested.unlink(missing_ok=True)
+    driver = Driver(adapter, endpoint, blind, attested)
     started = time.time()
     print(f"\nreference  {args.reference_n} requests at concurrency {args.concurrency}")
     driver.run(rows, "reference", args.concurrency)
@@ -192,7 +209,7 @@ def phase_reference(adapter, endpoint: str, args) -> dict:
         "captured_from": now(), "requests": len(driver.scores), "errors": driver.errors,
         "seconds": round(elapsed, 1), "rps": round(len(driver.scores) / elapsed, 2),
         "attested_shares": attested_shares(driver.attestations),
-        "blind_file": str(BLIND), "attested_file": str(ATTESTED),
+        "blind_file": str(blind), "attested_file": str(attested),
         **reference.to_json(),
     }
     record["reference_scores"] = reference.scores
@@ -271,7 +288,10 @@ def phase_watch(adapter, endpoint: str, args) -> dict:
 
     engine = detector.Detector(reference, confirmations=args.confirmations)
     rows = payload_rows(args.watch_n, args.seed)
-    driver = Driver(adapter, endpoint, BLIND, ATTESTED)
+    blind, attested = blind_path("watch"), attested_path("watch")
+    blind.unlink(missing_ok=True)
+    attested.unlink(missing_ok=True)
+    driver = Driver(adapter, endpoint, blind, attested)
     windows: list[dict] = []
     live_at = record["canary"]["live_at"]
     print(f"\nwatching  canary live at {live_at}, window {args.window} requests, "
@@ -340,6 +360,7 @@ def phase_watch(adapter, endpoint: str, args) -> dict:
 
     record["watch"] = {
         "windows": windows, "incident": asdict(incident),
+        "blind_file": str(blind), "attested_file": str(attested),
         "requests_sent": sent, "errors": driver.errors,
         "seconds": round(time.time() - started, 1),
         "first_canary_response_at": first_canary_at,
@@ -381,7 +402,10 @@ def phase_rollback(adapter, endpoint: str, args) -> dict:
     # Prove it with the platform's own attestation rather than with the split we just set:
     # the split is what we asked for, the responses are what happened.
     probe_rows = payload_rows(args.probe_n, args.seed + 1)
-    driver = Driver(adapter, endpoint, BLIND, ATTESTED)
+    blind, attested = blind_path("after_rollback"), attested_path("after_rollback")
+    blind.unlink(missing_ok=True)
+    attested.unlink(missing_ok=True)
+    driver = Driver(adapter, endpoint, blind, attested)
     driver.run(probe_rows, "after_traffic_moved", args.concurrency)
     driver.close()
     after_shares = attested_shares(driver.attestations)
@@ -408,6 +432,7 @@ def phase_rollback(adapter, endpoint: str, args) -> dict:
         "canary_requests_after_move": leaked,
         "at_zero_traffic_still_billing_thb_per_hour": round(
             sum(r["thb_per_hour"] for r in at_zero), 2),
+        "blind_file": str(blind), "attested_file": str(attested),
         "undeployed_at": undeployed_at,
         "final_thb_per_hour": round(sum(r["thb_per_hour"] for r in after), 2),
         "final_deployments": after,

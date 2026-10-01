@@ -1,0 +1,97 @@
+{
+  "reference": {
+    "n": 2000,
+    "mean_score": 0.11946158390559006,
+    "alert_rate": 0.0235,
+    "tail_cut": 0.5524589994698584,
+    "tail_rate": 0.01,
+    "latency_p95_ms": 1594.998
+  },
+  "incident": {
+    "declared": false,
+    "first_fire_at": null,
+    "first_fire_by": [],
+    "declared_at": null,
+    "declared_by": [],
+    "consecutive": 0
+  },
+  "thresholds": {
+    "decision_threshold": 0.5,
+    "alpha": 0.01,
+    "min_effect_ratio": 1.5,
+    "min_window": 100,
+    "confirmations": 2,
+    "psi_alert": 0.1,
+    "ks_alert": 0.1,
+    "mean_shift_alert": 0.2,
+    "latency_p95_ratio_alert": 1.5
+  },
+  "windows": [
+    {
+      "at": "2026-10-01T14:31:46.054Z",
+      "through_request": 200,
+      "signals": [
+        {
+          "name": "alert_rate",
+          "value": 0.035,
+          "baseline": 0.0235,
+          "threshold": 0.01,
+          "ratio": 1.489,
+          "p_value": 0.19327278604939557,
+          "fired": false,
+          "note": "share of scores above the product's decision threshold 0.5"
+        },
+        {
+          "name": "tail_rate",
+          "value": 0.015,
+          "baseline": 0.01,
+          "threshold": 0.01,
+          "ratio": 1.5,
+          "p_value": 0.3233213054643649,
+          "fired": false,
+          "note": "share above the reference's own p99 (0.5525); a rate fixed at 1% by construction, so the multiple it shows does not depend on where the product's decision threshold happens to sit"
+        },
+        {
+          "name": "psi",
+          "value": 0.01137,
+          "baseline": 0.0,
+          "threshold": 0.1,
+          "ratio": 0.114,
+          "p_value": null,
+          "fired": false,
+          "note": "population stability index on the score distribution"
+        },
+        {
+          "name": "ks",
+          "value": 0.0485,
+          "baseline": 0.0,
+          "threshold": 0.1,
+          "ratio": 0.485,
+          "p_value": null,
+          "fired": false,
+          "note": "largest gap between the two score CDFs"
+        },
+        {
+          "name": "mean_score",
+          "value": 0.12294,
+          "baseline": 0.11946,
+          "threshold": 0.2,
+          "ratio": 0.029,
+          "p_value": null,
+          "fired": false,
+          "note": "relative shift in the mean predicted probability"
+        },
+        {
+          "name": "latency_p95",
+          "value": 1262.05,
+          "baseline": 1595.0,
+          "threshold": 1.5,
+          "ratio": 0.791,
+          "p_value": null,
+          "fired": false,
+          "note": "a canary can be worse by being slow rather than by being wrong"
+        }
+      ]
+    }
+  ]
+}

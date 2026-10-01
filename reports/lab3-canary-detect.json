@@ -1,0 +1,298 @@
+{
+  "reference": {
+    "n": 2000,
+    "mean_score": 0.11946158390559006,
+    "alert_rate": 0.0235,
+    "tail_cut": 0.5524589994698584,
+    "tail_rate": 0.01,
+    "latency_p95_ms": 1594.998
+  },
+  "incident": {
+    "declared": false,
+    "first_fire_at": "2026-09-30T19:33:04.969Z",
+    "first_fire_by": [
+      "alert_rate",
+      "tail_rate"
+    ],
+    "declared_at": null,
+    "declared_by": [],
+    "consecutive": 1
+  },
+  "thresholds": {
+    "decision_threshold": 0.5,
+    "alpha": 0.01,
+    "min_effect_ratio": 1.5,
+    "min_window": 100,
+    "confirmations": 2,
+    "psi_alert": 0.1,
+    "ks_alert": 0.1,
+    "mean_shift_alert": 0.2,
+    "latency_p95_ratio_alert": 1.5
+  },
+  "windows": [
+    {
+      "at": "2026-09-30T19:32:13.746Z",
+      "through_request": 200,
+      "signals": [
+        {
+          "name": "alert_rate",
+          "value": 0.045,
+          "baseline": 0.0235,
+          "threshold": 0.01,
+          "ratio": 1.915,
+          "p_value": 0.04815789094978886,
+          "fired": false,
+          "note": "share of scores above the product's decision threshold 0.5"
+        },
+        {
+          "name": "tail_rate",
+          "value": 0.03,
+          "baseline": 0.01,
+          "threshold": 0.01,
+          "ratio": 3.0,
+          "p_value": 0.016022906909178604,
+          "fired": false,
+          "note": "share above the reference's own p99 (0.5525); a rate fixed at 1% by construction, so the multiple it shows does not depend on where the product's decision threshold happens to sit"
+        },
+        {
+          "name": "psi",
+          "value": 0.02838,
+          "baseline": 0.0,
+          "threshold": 0.1,
+          "ratio": 0.284,
+          "p_value": null,
+          "fired": false,
+          "note": "population stability index on the score distribution"
+        },
+        {
+          "name": "ks",
+          "value": 0.07,
+          "baseline": 0.0,
+          "threshold": 0.1,
+          "ratio": 0.7,
+          "p_value": null,
+          "fired": false,
+          "note": "largest gap between the two score CDFs"
+        },
+        {
+          "name": "mean_score",
+          "value": 0.13969,
+          "baseline": 0.11946,
+          "threshold": 0.2,
+          "ratio": 0.169,
+          "p_value": null,
+          "fired": false,
+          "note": "relative shift in the mean predicted probability"
+        },
+        {
+          "name": "latency_p95",
+          "value": 1540.03,
+          "baseline": 1595.0,
+          "threshold": 1.5,
+          "ratio": 0.966,
+          "p_value": null,
+          "fired": false,
+          "note": "a canary can be worse by being slow rather than by being wrong"
+        }
+      ]
+    },
+    {
+      "at": "2026-09-30T19:32:31.222Z",
+      "through_request": 400,
+      "signals": [
+        {
+          "name": "alert_rate",
+          "value": 0.035,
+          "baseline": 0.0235,
+          "threshold": 0.01,
+          "ratio": 1.489,
+          "p_value": 0.19327278604939557,
+          "fired": false,
+          "note": "share of scores above the product's decision threshold 0.5"
+        },
+        {
+          "name": "tail_rate",
+          "value": 0.025,
+          "baseline": 0.01,
+          "threshold": 0.01,
+          "ratio": 2.5,
+          "p_value": 0.051746263630788006,
+          "fired": false,
+          "note": "share above the reference's own p99 (0.5525); a rate fixed at 1% by construction, so the multiple it shows does not depend on where the product's decision threshold happens to sit"
+        },
+        {
+          "name": "psi",
+          "value": 0.03078,
+          "baseline": 0.0,
+          "threshold": 0.1,
+          "ratio": 0.308,
+          "p_value": null,
+          "fired": false,
+          "note": "population stability index on the score distribution"
+        },
+        {
+          "name": "ks",
+          "value": 0.086,
+          "baseline": 0.0,
+          "threshold": 0.1,
+          "ratio": 0.86,
+          "p_value": null,
+          "fired": false,
+          "note": "largest gap between the two score CDFs"
+        },
+        {
+          "name": "mean_score",
+          "value": 0.1409,
+          "baseline": 0.11946,
+          "threshold": 0.2,
+          "ratio": 0.179,
+          "p_value": null,
+          "fired": false,
+          "note": "relative shift in the mean predicted probability"
+        },
+        {
+          "name": "latency_p95",
+          "value": 1603.12,
+          "baseline": 1595.0,
+          "threshold": 1.5,
+          "ratio": 1.005,
+          "p_value": null,
+          "fired": false,
+          "note": "a canary can be worse by being slow rather than by being wrong"
+        }
+      ]
+    },
+    {
+      "at": "2026-09-30T19:32:48.349Z",
+      "through_request": 600,
+      "signals": [
+        {
+          "name": "alert_rate",
+          "value": 0.03,
+          "baseline": 0.0235,
+          "threshold": 0.01,
+          "ratio": 1.277,
+          "p_value": 0.33092902115780987,
+          "fired": false,
+          "note": "share of scores above the product's decision threshold 0.5"
+        },
+        {
+          "name": "tail_rate",
+          "value": 0.02,
+          "baseline": 0.01,
+          "threshold": 0.01,
+          "ratio": 2.0,
+          "p_value": 0.14196596555526791,
+          "fired": false,
+          "note": "share above the reference's own p99 (0.5525); a rate fixed at 1% by construction, so the multiple it shows does not depend on where the product's decision threshold happens to sit"
+        },
+        {
+          "name": "psi",
+          "value": 0.03434,
+          "baseline": 0.0,
+          "threshold": 0.1,
+          "ratio": 0.343,
+          "p_value": null,
+          "fired": false,
+          "note": "population stability index on the score distribution"
+        },
+        {
+          "name": "ks",
+          "value": 0.0725,
+          "baseline": 0.0,
+          "threshold": 0.1,
+          "ratio": 0.725,
+          "p_value": null,
+          "fired": false,
+          "note": "largest gap between the two score CDFs"
+        },
+        {
+          "name": "mean_score",
+          "value": 0.14166,
+          "baseline": 0.11946,
+          "threshold": 0.2,
+          "ratio": 0.186,
+          "p_value": null,
+          "fired": false,
+          "note": "relative shift in the mean predicted probability"
+        },
+        {
+          "name": "latency_p95",
+          "value": 1557.58,
+          "baseline": 1595.0,
+          "threshold": 1.5,
+          "ratio": 0.977,
+          "p_value": null,
+          "fired": false,
+          "note": "a canary can be worse by being slow rather than by being wrong"
+        }
+      ]
+    },
+    {
+      "at": "2026-09-30T19:33:04.969Z",
+      "through_request": 800,
+      "signals": [
+        {
+          "name": "alert_rate",
+          "value": 0.07,
+          "baseline": 0.0235,
+          "threshold": 0.01,
+          "ratio": 2.979,
+          "p_value": 0.00031259975289785023,
+          "fired": true,
+          "note": "share of scores above the product's decision threshold 0.5"
+        },
+        {
+          "name": "tail_rate",
+          "value": 0.06,
+          "baseline": 0.01,
+          "threshold": 0.01,
+          "ratio": 6.0,
+          "p_value": 1.0788252295399323e-06,
+          "fired": true,
+          "note": "share above the reference's own p99 (0.5525); a rate fixed at 1% by construction, so the multiple it shows does not depend on where the product's decision threshold happens to sit"
+        },
+        {
+          "name": "psi",
+          "value": 0.0243,
+          "baseline": 0.0,
+          "threshold": 0.1,
+          "ratio": 0.243,
+          "p_value": null,
+          "fired": false,
+          "note": "population stability index on the score distribution"
+        },
+        {
+          "name": "ks",
+          "value": 0.052,
+          "baseline": 0.0,
+          "threshold": 0.1,
+          "ratio": 0.52,
+          "p_value": null,
+          "fired": false,
+          "note": "largest gap between the two score CDFs"
+        },
+        {
+          "name": "mean_score",
+          "value": 0.14227,
+          "baseline": 0.11946,
+          "threshold": 0.2,
+          "ratio": 0.191,
+          "p_value": null,
+          "fired": false,
+          "note": "relative shift in the mean predicted probability"
+        },
+        {
+          "name": "latency_p95",
+          "value": 1406.84,
+          "baseline": 1595.0,
+          "threshold": 1.5,
+          "ratio": 0.882,
+          "p_value": null,
+          "fired": false,
+          "note": "a canary can be worse by being slow rather than by being wrong"
+        }
+      ]
+    }
+  ]
+}
