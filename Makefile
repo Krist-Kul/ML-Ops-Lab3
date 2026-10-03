@@ -11,7 +11,7 @@ PLATFORM ?= linux/amd64
 SEED ?= 20260101
 
 .PHONY: help setup cloud-check data test portability-audit train image image-push reproduce verify clean teardown \
-        train-remote tune tune-local compare register promote reload-check serve serve-local serve-image smoke-local deploy smoke endpoint-status loadtest drift inject-drift pipeline cost swap-check llm-eval llm-gate
+        train-remote tune tune-local compare register promote reload-check serve serve-local serve-image smoke-local deploy smoke endpoint-status loadtest drift inject-drift pipeline cost cost-per-1k swap-check llm-eval llm-gate
 
 help:
 	@grep -E "^[a-zA-Z_-]+:.*?## .*$$" $(MAKEFILE_LIST) | awk -F":.*?## " "{printf \"  %-20s %s\\n\", \$$1, \$$2}"
@@ -174,6 +174,9 @@ llm-gate: ## Prove the gate fails on a degraded set — expected to exit non-zer
 
 cost: ## Build the cost report
 	python scripts/cost_report.py --estimate $(EST) --actual $(ACT) --rps $(RPS) --instance $(INSTANCE)
+
+cost-per-1k: ## Lab 3 Task 5 — cost per 1,000 predictions and the batch break-even (offline)
+	python scripts/cost_per_1k.py
 
 swap-check: ## Prove the portability seam against a second provider
 	python scripts/portability_swap_check.py --second-provider $(SECOND)

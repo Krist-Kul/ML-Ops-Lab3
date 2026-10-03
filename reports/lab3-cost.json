@@ -1,0 +1,98 @@
+{
+  "lab": 3,
+  "task": 5,
+  "computed_utc": "2026-10-03",
+  "inputs": {
+    "provider": "gcp",
+    "instance": "n1-standard-2",
+    "thb_per_replica_hour": 5.09,
+    "price_source": "src/costs.SERVING_PRICE_TABLE, verified 2026-09-30 against the Cloud Billing Catalog API for asia-southeast1 at 33.355 THB/USD",
+    "cloud_calls_made": 0,
+    "throughput_candidates_rps": {
+      "local_container_emulated": 51.28,
+      "endpoint_client_side_from_bangkok": 10.27,
+      "endpoint_container_side": 10.4
+    },
+    "throughput_chosen_rps": 10.4,
+    "throughput_chosen_why": "the only one of the three measured on the machine that bills, read from the container's own latency_ms logs",
+    "endpoint_p50_one_caller_ms": 82.9,
+    "batch_rows_per_call": 100,
+    "batch_rows_per_s_projected": 1206.2726176115802,
+    "batch_projection_basis": "predict_proba is flat in rows (25.029 ms for 1, 25.053 for 100, Task 3), measured locally at a 97x row-throughput gain (97.0x); the endpoint batch route was never load-tested, so this is a projection and is labelled as one"
+  },
+  "utilisation": {
+    "assumptions": {
+      "realised_this_lab": 0.006045183691305723,
+      "5pct_idle_service": 0.05,
+      "25pct_busy_business_hours": 0.25,
+      "80pct_well_packed": 0.8,
+      "100pct_saturated_ceiling": 1.0
+    },
+    "realised_derivation": {
+      "predictions_served": {
+        "task2_smoke_scored": 3,
+        "task3_loadtest": 2033,
+        "task4_reference": 2000,
+        "task4_watch": 954,
+        "task4_after_rollback": 300
+      },
+      "predictions_served_total": 5290,
+      "billed_replica_hours_base": 23.372777777777777,
+      "capacity_predictions_at_saturation": 875076.8,
+      "utilisation": 0.006045183691305723
+    }
+  },
+  "cost_per_1000_predictions_thb": {
+    "single_row_route": {
+      "realised_this_lab": 22.48911888258769,
+      "5pct_idle_service": 2.7190170940170937,
+      "25pct_busy_business_hours": 0.5438034188034188,
+      "80pct_well_packed": 0.16993856837606836,
+      "100pct_saturated_ceiling": 0.1359508547008547
+    },
+    "batch_100_row_route": {
+      "realised_this_lab": 0.19389218735811806,
+      "5pct_idle_service": 0.023442277777777777,
+      "25pct_busy_business_hours": 0.004688455555555555,
+      "80pct_well_packed": 0.001465142361111111,
+      "100pct_saturated_ceiling": 0.0011721138888888887
+    },
+    "realised_one_replica": 22.48911888258769,
+    "realised_all_billed_incident_included": 41.168735139676535
+  },
+  "what_was_billed": {
+    "base_n1_standard_2_hours": 23.372777777777777,
+    "base_n1_standard_2_thb": 118.96743888888888,
+    "canary_second_replica_hours": 19.113,
+    "canary_second_replica_thb": 97.28517,
+    "task3_n1_standard_4_hours": 0.15,
+    "task3_n1_standard_4_thb": 1.53,
+    "total_thb": 217.78260888888886
+  },
+  "batch_breakeven": {
+    "endpoint_warm_thb_per_day": 122.16,
+    "batch_startup_s_assumed": 300.0,
+    "batch_startup_thb": 0.4241666666666667,
+    "single_row_route": {
+      "rows_per_s": 10.4,
+      "predictions_per_day": 895440.0,
+      "equivalent_sustained_rps": 10.363888888888889
+    },
+    "batch_100_row_route": {
+      "rows_per_s": 1206.2726176115802,
+      "predictions_per_day": 103860072.37635706,
+      "equivalent_sustained_rps": 1202.0841710226512
+    },
+    "this_lab_whole_volume_as_one_batch_thb": 1.143346688034188,
+    "scaffold_fn_for_comparison": {
+      "note": "src.costs.batch_breakeven_rps models a batch job as a FIXED daily cost, so it answers a different question: given a job that costs this much whatever the volume, what request rate makes the endpoint worth it. The volume-dependent form above is the one Task 5 asks for.",
+      "batch_job_thb_assumed": 0.4241666666666667,
+      "rps": 0.0014089795524691359
+    }
+  },
+  "endpoint_state": {
+    "running_now": false,
+    "teardown_verified": true,
+    "thb_per_hour": 0.0
+  }
+}
